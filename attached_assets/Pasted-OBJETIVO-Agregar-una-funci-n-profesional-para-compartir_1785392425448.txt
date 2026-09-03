@@ -1,0 +1,65 @@
+OBJETIVO
+
+Agregar una función profesional para compartir productos utilizando las funciones nativas del dispositivo, manteniendo la estética premium de la tienda.
+
+BOTÓN COMPARTIR
+
+Agregar un botón "Compartir" en la página del producto, ubicado cerca de las acciones principales (junto a Favoritos o debajo de los botones de compra, donde mejor se integre visualmente).
+
+Debe utilizar un icono moderno y mantener el mismo estilo del resto del sitio.
+
+FUNCIONAMIENTO
+En dispositivos móviles
+
+Utilizar la Web Share API para abrir directamente el menú nativo del sistema.
+
+El usuario debe poder compartir mediante las aplicaciones instaladas (WhatsApp, Facebook, Telegram, Mensajes, Instagram cuando sea compatible, AirDrop en iPhone, etc.) sin crear ventanas personalizadas.
+
+Compartir:
+
+Nombre del producto
+Breve descripción (si existe)
+URL pública del producto
+En computadores
+
+Si el navegador no soporta Web Share API:
+
+Copiar automáticamente el enlace del producto al portapapeles.
+Mostrar una notificación elegante indicando que el enlace fue copiado correctamente.
+
+No utilizar alert().
+
+EXPERIENCIA
+
+Agregar una pequeña animación al pulsar el botón.
+
+La acción debe sentirse inmediata y completamente integrada con la tienda.
+
+OPEN GRAPH
+
+Implementar metadatos dinámicos para cada producto con el fin de que, al compartir un enlace por WhatsApp, Facebook, Telegram, LinkedIn, Discord u otras plataformas compatibles, se muestre una vista previa profesional del producto.
+
+Cada página de producto debe compartir automáticamente:
+
+Nombre del producto.
+Imagen principal.
+Descripción corta.
+URL correcta del producto.
+
+Antes de implementarlo, verifica que la arquitectura actual del proyecto permita hacerlo correctamente.
+
+Si requiere una implementación específica por la forma en que está construida la aplicación, realiza la solución más adecuada sin cambiar la arquitectura del proyecto.
+
+IMPORTANTE
+
+No modificar el carrito.
+
+No modificar el sistema de pedidos.
+
+No modificar Compra por WhatsApp.
+
+No modificar Compra Contra Entrega.
+
+No romper funcionalidades existentes.
+
+Implementar únicamente esta nueva funcionalidad manteniendo el estilo premium y profesional de PriveLux.

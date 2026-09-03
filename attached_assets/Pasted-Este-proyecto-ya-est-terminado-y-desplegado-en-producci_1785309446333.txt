@@ -1,0 +1,90 @@
+Este proyecto ya está terminado y desplegado en producción. No refactorices, no cambies el diseño existente, no reorganices componentes ni modifiques funcionalidades que ya funcionan. Realiza únicamente los cambios solicitados y reutiliza los estilos actuales para que todo mantenga la misma apariencia.
+
+Objetivo
+
+Agregar una segunda opción de compra llamada "Comprar contra entrega" sin eliminar la opción actual de Comprar por WhatsApp.
+
+La tienda debe ofrecer ambas alternativas para que el cliente elija la que prefiera.
+
+Cambios requeridos
+1. Página del producto
+
+Actualmente existen los botones:
+
+Agregar al carrito
+Comprar por WhatsApp
+
+Agregar un tercer botón con el mismo estilo de la página:
+
+Comprar contra entrega
+
+Debe verse profesional y mantener la identidad visual existente.
+
+2. Carrito de compras
+
+Actualmente existe el botón:
+
+Finalizar por WhatsApp
+
+Agregar un segundo botón:
+
+Finalizar contra entrega
+
+No eliminar ni modificar el botón de WhatsApp.
+
+3. Flujo de Compra Contra Entrega
+
+Al hacer clic en "Comprar contra entrega" o "Finalizar contra entrega", abrir un formulario (o reutilizar uno existente si es posible) solicitando como mínimo:
+
+Nombre completo
+Número de celular
+Ciudad
+Dirección
+Barrio (opcional)
+Referencia de la dirección (opcional)
+
+No abrir WhatsApp.
+
+El pedido debe registrarse normalmente y enviarse al correo/panel exactamente igual que cualquier otro pedido.
+
+4. Aviso obligatorio antes del formulario
+
+Antes de los campos del formulario debe mostrarse un recuadro informativo visible pero elegante.
+
+Texto sugerido:
+
+Información importante sobre el pago contra entrega
+
+El producto se paga al momento de recibirlo.
+
+El valor del envío debe pagarse por anticipado antes del despacho.
+
+Una vez recibamos tu pedido, nos comunicaremos contigo para informarte el valor del envío según tu ciudad. Después de recibir el pago del envío prepararemos y despacharemos tu pedido.
+
+Este mensaje debe verse profesional, con un diseño limpio y acorde al resto de la tienda.
+
+No debe parecer un mensaje de error ni una advertencia agresiva.
+
+5. Confirmación del pedido
+
+Después de enviar el formulario mostrar una pantalla o mensaje de éxito.
+
+Texto sugerido:
+
+¡Pedido recibido con éxito!
+
+Gracias por tu compra.
+
+En los próximos minutos nos comunicaremos contigo para informarte el valor del envío correspondiente a tu ciudad.
+
+Una vez recibamos el pago del envío prepararemos y despacharemos tu pedido para que el producto sea pagado contra entrega.
+
+6. Importante
+No eliminar la compra por WhatsApp.
+No modificar el carrito existente.
+No cambiar estilos generales.
+No cambiar la estructura del proyecto.
+No romper ninguna funcionalidad existente.
+Reutilizar componentes existentes siempre que sea posible.
+
+El objetivo es simplemente añadir una segunda modalidad de compra completamente integrada al sitio, manteniendo la experiencia premium de la tienda.

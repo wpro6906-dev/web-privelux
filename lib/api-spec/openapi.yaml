@@ -1,0 +1,1180 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: PRIVELUX API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: products
+    description: Product operations
+  - name: categories
+    description: Category operations
+  - name: brands
+    description: Brand operations
+  - name: featured-brands
+    description: Featured brands carousel operations
+  - name: admin
+    description: Admin operations
+  - name: shop
+    description: Shop summary operations
+  - name: purchase-requests
+    description: Purchase request operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: brand
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: visible
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create product (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/featured:
+    get:
+      operationId: listFeaturedProducts
+      tags: [products]
+      summary: List featured products
+      responses:
+        "200":
+          description: Featured products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/new-arrivals:
+    get:
+      operationId: listNewArrivals
+      tags: [products]
+      summary: List new arrivals
+      responses:
+        "200":
+          description: New arrival products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update product (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete product (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /products/{id}/duplicate:
+    post:
+      operationId: duplicateProduct
+      tags: [products]
+      summary: Duplicate a product (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Duplicated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+
+  /products/{id}/related:
+    get:
+      operationId: listRelatedProducts
+      tags: [products]
+      summary: List related products by category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Related products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create category (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    patch:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update category (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryUpdate"
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete category (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /brands:
+    get:
+      operationId: listBrands
+      tags: [brands]
+      summary: List brands
+      responses:
+        "200":
+          description: List of brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Brand"
+    post:
+      operationId: createBrand
+      tags: [brands]
+      summary: Create brand (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrandInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+
+  /featured-brands:
+    get:
+      operationId: listFeaturedBrands
+      tags: [featured-brands]
+      summary: List active featured brands (public)
+      responses:
+        "200":
+          description: List of featured brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeaturedBrand"
+    post:
+      operationId: createFeaturedBrand
+      tags: [featured-brands]
+      summary: Create featured brand (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeaturedBrandInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeaturedBrand"
+
+  /featured-brands/all:
+    get:
+      operationId: listAllFeaturedBrands
+      tags: [featured-brands]
+      summary: List all featured brands including inactive (admin)
+      responses:
+        "200":
+          description: List of all featured brands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeaturedBrand"
+
+  /featured-brands/{id}:
+    patch:
+      operationId: updateFeaturedBrand
+      tags: [featured-brands]
+      summary: Update featured brand (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeaturedBrandUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeaturedBrand"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteFeaturedBrand
+      tags: [featured-brands]
+      summary: Delete featured brand (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /brands/{id}:
+    patch:
+      operationId: updateBrand
+      tags: [brands]
+      summary: Update brand (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrandUpdate"
+      responses:
+        "200":
+          description: Updated brand
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteBrand
+      tags: [brands]
+      summary: Delete brand (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /shop/summary:
+    get:
+      operationId: getShopSummary
+      tags: [shop]
+      summary: Get shop summary with product counts per category
+      responses:
+        "200":
+          description: Shop summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopSummary"
+
+  /purchase-requests:
+    post:
+      operationId: createPurchaseRequest
+      tags: [purchase-requests]
+      summary: Create purchase request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseRequestInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseRequest"
+    get:
+      operationId: listPurchaseRequests
+      tags: [purchase-requests]
+      summary: List purchase requests (admin)
+      responses:
+        "200":
+          description: List of purchase requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurchaseRequest"
+        "401":
+          description: Unauthorized
+
+  /purchase-requests/stats:
+    get:
+      operationId: getPurchaseRequestStats
+      tags: [purchase-requests]
+      summary: Get purchase request stats (admin)
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseRequestStats"
+        "401":
+          description: Unauthorized
+
+  /purchase-requests/reset-sequence:
+    post:
+      operationId: resetPurchaseRequestSequence
+      tags: [purchase-requests]
+      summary: Reset purchase request ID sequence to 1 (admin, only when table is empty)
+      responses:
+        "200":
+          description: Sequence reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+        "409":
+          description: Table is not empty
+
+  /purchase-requests/{id}:
+    patch:
+      operationId: updatePurchaseRequest
+      tags: [purchase-requests]
+      summary: Update purchase request status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseRequestUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseRequest"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+    delete:
+      operationId: deletePurchaseRequest
+      tags: [purchase-requests]
+      summary: Delete purchase request (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginResult"
+        "401":
+          description: Unauthorized
+
+  /admin/me:
+    get:
+      operationId: getAdminMe
+      tags: [admin]
+      summary: Get current admin session
+      responses:
+        "200":
+          description: Admin info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInfo"
+        "401":
+          description: Unauthorized
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Product:
+      type: object
+      required: [id, name, price, categoryId, image, featured, visible, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        price:
+          type: number
+        categoryId:
+          type: integer
+        categoryName:
+          type: ["string", "null"]
+        brandId:
+          type: ["integer", "null"]
+        brandName:
+          type: ["string", "null"]
+        image:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+        featured:
+          type: boolean
+        visible:
+          type: boolean
+        stock:
+          type: integer
+        isOnSale:
+          type: boolean
+        originalPrice:
+          type: ["number", "null"]
+        salePrice:
+          type: ["number", "null"]
+        aiImageNotice:
+          type: boolean
+        hasSizes:
+          type: boolean
+        sizeTemplate:
+          type: ["string", "null"]
+        availableSizes:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+
+    ProductInput:
+      type: object
+      required: [name, price, categoryId, image]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        categoryId:
+          type: integer
+        brandId:
+          type: ["integer", "null"]
+        image:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+        featured:
+          type: boolean
+        visible:
+          type: boolean
+        stock:
+          type: integer
+        isOnSale:
+          type: boolean
+        originalPrice:
+          type: ["number", "null"]
+        salePrice:
+          type: ["number", "null"]
+        aiImageNotice:
+          type: boolean
+        hasSizes:
+          type: boolean
+        sizeTemplate:
+          type: ["string", "null"]
+        availableSizes:
+          type: array
+          items:
+            type: string
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        categoryId:
+          type: integer
+        brandId:
+          type: ["integer", "null"]
+        image:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+        featured:
+          type: boolean
+        visible:
+          type: boolean
+        stock:
+          type: integer
+        isOnSale:
+          type: boolean
+        originalPrice:
+          type: ["number", "null"]
+        salePrice:
+          type: ["number", "null"]
+        aiImageNotice:
+          type: boolean
+        hasSizes:
+          type: boolean
+        sizeTemplate:
+          type: ["string", "null"]
+        availableSizes:
+          type: array
+          items:
+            type: string
+
+    CategorySection:
+      type: object
+      properties:
+        title:
+          type: ["string", "null"]
+        image:
+          type: ["string", "null"]
+        productIds:
+          type: array
+          items:
+            type: integer
+
+    Category:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        image:
+          type: ["string", "null"]
+        iconEmoji:
+          type: ["string", "null"]
+        iconImageUrl:
+          type: ["string", "null"]
+        tagline:
+          type: ["string", "null"]
+        productCount:
+          type: integer
+        section1Title:
+          type: ["string", "null"]
+        section1Image:
+          type: ["string", "null"]
+        section1ProductIds:
+          type: array
+          items:
+            type: integer
+        section2Title:
+          type: ["string", "null"]
+        section2Image:
+          type: ["string", "null"]
+        section2ProductIds:
+          type: array
+          items:
+            type: integer
+
+    CategoryInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        image:
+          type: string
+        iconEmoji:
+          type: string
+        iconImageUrl:
+          type: string
+        tagline:
+          type: string
+        section1Title:
+          type: string
+        section1Image:
+          type: string
+        section1ProductIds:
+          type: array
+          items:
+            type: integer
+        section2Title:
+          type: string
+        section2Image:
+          type: string
+        section2ProductIds:
+          type: array
+          items:
+            type: integer
+
+    CategoryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        image:
+          type: ["string", "null"]
+        iconEmoji:
+          type: ["string", "null"]
+        iconImageUrl:
+          type: ["string", "null"]
+        tagline:
+          type: ["string", "null"]
+        section1Title:
+          type: ["string", "null"]
+        section1Image:
+          type: ["string", "null"]
+        section1ProductIds:
+          type: array
+          items:
+            type: integer
+        section2Title:
+          type: ["string", "null"]
+        section2Image:
+          type: ["string", "null"]
+        section2ProductIds:
+          type: array
+          items:
+            type: integer
+
+    FeaturedBrand:
+      type: object
+      required: [id, brandId, brandName, imageUrl, order, active]
+      properties:
+        id:
+          type: integer
+        brandId:
+          type: integer
+        brandName:
+          type: string
+        imageUrl:
+          type: string
+        imageMobileUrl:
+          type: string
+          nullable: true
+        order:
+          type: integer
+        active:
+          type: boolean
+
+    FeaturedBrandInput:
+      type: object
+      required: [brandId, imageUrl]
+      properties:
+        brandId:
+          type: integer
+        imageUrl:
+          type: string
+        imageMobileUrl:
+          type: string
+          nullable: true
+        order:
+          type: integer
+        active:
+          type: boolean
+
+    FeaturedBrandUpdate:
+      type: object
+      properties:
+        brandId:
+          type: integer
+        imageUrl:
+          type: string
+        imageMobileUrl:
+          type: string
+          nullable: true
+        order:
+          type: integer
+        active:
+          type: boolean
+
+    Brand:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    BrandInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+
+    BrandUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+
+    ShopSummary:
+      type: object
+      required: [totalProducts, totalCategories, categoryCounts]
+      properties:
+        totalProducts:
+          type: integer
+        totalCategories:
+          type: integer
+        categoryCounts:
+          type: array
+          items:
+            type: object
+            required: [categoryName, count]
+            properties:
+              categoryName:
+                type: string
+              count:
+                type: integer
+
+    PurchaseRequestItem:
+      type: object
+      required: [productId, name, image, price, quantity]
+      properties:
+        productId:
+          type: integer
+        name:
+          type: string
+        image:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+
+    PurchaseRequest:
+      type: object
+      required: [id, createdAt, name, phone, items, total, status]
+      properties:
+        id:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        neighborhood:
+          type: string
+          nullable: true
+        addressRef:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchaseRequestItem"
+        total:
+          type: string
+        status:
+          type: string
+          enum: [nueva, contactado, venta_finalizada, cancelada]
+        purchaseMethod:
+          type: string
+          nullable: true
+          enum: [whatsapp, contra_entrega]
+
+    PurchaseRequestInput:
+      type: object
+      required: [name, phone, items, total]
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        city:
+          type: string
+        address:
+          type: string
+        neighborhood:
+          type: string
+        addressRef:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchaseRequestItem"
+        total:
+          type: string
+        purchaseMethod:
+          type: string
+          enum: [whatsapp, contra_entrega]
+
+    PurchaseRequestUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [nueva, contactado, venta_finalizada, cancelada]
+
+    PurchaseRequestStats:
+      type: object
+      required: [summary, byDay, byDayVentas, topProducts, topBrands, topCategories, topClients]
+      properties:
+        summary:
+          type: object
+          required: [total, nueva, contactado, venta_finalizada, cancelada, conversionRate]
+          properties:
+            total:
+              type: integer
+            nueva:
+              type: integer
+            contactado:
+              type: integer
+            venta_finalizada:
+              type: integer
+            cancelada:
+              type: integer
+            conversionRate:
+              type: number
+        byDay:
+          type: array
+          items:
+            type: object
+            required: [date, count]
+            properties:
+              date:
+                type: string
+              count:
+                type: integer
+        byDayVentas:
+          type: array
+          items:
+            type: object
+            required: [date, count]
+            properties:
+              date:
+                type: string
+              count:
+                type: integer
+        topProducts:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+        topBrands:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+        topCategories:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name:
+                type: string
+              count:
+                type: integer
+        topClients:
+          type: array
+          items:
+            type: object
+            required: [name, phone, count]
+            properties:
+              name:
+                type: string
+              phone:
+                type: string
+              count:
+                type: integer
+
+    AdminLoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AdminLoginResult:
+      type: object
+      required: [success, token]
+      properties:
+        success:
+          type: boolean
+        token:
+          type: string
+
+    AdminInfo:
+      type: object
+      required: [username]
+      properties:
+        username:
+          type: string

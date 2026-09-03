@@ -1,0 +1,151 @@
+Estabas implementando esta funcionalidad, pero la sesión anterior se interrumpió porque se agotaron los créditos de la cuenta.
+
+No debes empezar desde cero.
+
+La base de datos ya fue modificada en la sesión anterior y ya está preparada para soportar esta funcionalidad. No generes nuevas migraciones, no vuelvas a modificar el esquema de la base de datos y no intentes rehacer esos cambios.
+
+Continúa únicamente con la implementación pendiente utilizando la estructura actual de la base de datos.
+
+REGLAS IMPORTANTES
+
+Este proyecto ya está desplegado en producción.
+
+No refactorices.
+
+No reorganices archivos.
+
+No cambies la arquitectura.
+
+No cambies el diseño existente.
+
+No elimines funcionalidades.
+
+No modifiques código que ya funciona.
+
+Reutiliza todos los componentes existentes siempre que sea posible.
+
+Haz únicamente los cambios necesarios para implementar esta nueva funcionalidad.
+
+OBJETIVO
+
+Agregar una segunda modalidad de compra llamada:
+
+Comprar contra entrega
+
+sin eliminar la modalidad actual de compra por WhatsApp.
+
+El usuario debe poder elegir cualquiera de las dos opciones.
+
+CAMBIOS REQUERIDOS
+Página del producto
+
+Actualmente existen:
+
+Agregar al carrito
+Comprar por WhatsApp
+
+Agregar un tercer botón:
+
+Comprar contra entrega
+
+Debe utilizar exactamente el mismo estilo visual del sitio.
+
+No modificar los botones existentes.
+
+Carrito
+
+Actualmente existe:
+
+Finalizar por WhatsApp
+
+Agregar un segundo botón:
+
+Finalizar contra entrega
+
+No eliminar ni modificar el flujo actual de WhatsApp.
+
+Flujo Compra Contra Entrega
+
+Al pulsar cualquiera de esos botones debe abrir el formulario correspondiente.
+
+No abrir WhatsApp.
+
+Solicitar como mínimo:
+
+Nombre completo
+Teléfono
+Ciudad
+Dirección
+Barrio (opcional)
+Referencia (opcional)
+
+Utilizar los componentes existentes si ya existen.
+
+Aviso antes del formulario
+
+Antes de los campos debe mostrarse un cuadro informativo elegante.
+
+Texto:
+
+Información importante sobre el pago contra entrega
+
+El producto se paga al momento de recibirlo.
+
+El valor del envío debe pagarse por anticipado antes del despacho.
+
+Una vez recibamos tu pedido nos comunicaremos contigo para informarte el valor del envío correspondiente según tu ciudad.
+
+Después de recibir el pago del envío prepararemos y despacharemos tu pedido.
+
+Este mensaje debe integrarse visualmente con el resto de la página.
+
+No debe verse como una advertencia agresiva.
+
+Al enviar el formulario
+
+Registrar el pedido utilizando la estructura de la base de datos que ya existe.
+
+No crear nuevas tablas.
+
+No modificar el esquema.
+
+No generar migraciones.
+
+Utilizar la implementación existente.
+
+Confirmación
+
+Mostrar una pantalla o mensaje de éxito.
+
+Texto:
+
+¡Pedido recibido con éxito!
+
+Gracias por tu compra.
+
+En los próximos minutos nos comunicaremos contigo para informarte el valor del envío correspondiente a tu ciudad.
+
+Una vez recibamos el pago del envío prepararemos y despacharemos tu pedido para que el producto sea pagado contra entrega.
+
+Identificación del pedido
+
+Aprovecha la estructura de la base de datos que ya fue preparada para guardar el tipo de compra.
+
+Cada pedido debe quedar identificado como:
+
+WhatsApp
+Contra entrega
+
+para que posteriormente puedan diferenciarse fácilmente desde el panel de administración y en los correos.
+
+Antes de modificar cualquier archivo
+
+Primero analiza el proyecto completo.
+
+Identifica qué partes ya están implementadas.
+
+No vuelvas a implementar funcionalidades que ya existan.
+
+Completa únicamente lo que falta.
+
+Si encuentras código parcialmente implementado correspondiente a esta funcionalidad, continúa desde ese punto en lugar de reemplazarlo.

@@ -1,0 +1,338 @@
+IMPORTANTE
+
+Este proyecto ya está terminado y desplegado en producción.
+
+No refactorices el proyecto.
+
+No cambies la arquitectura.
+
+No reorganices archivos.
+
+No modifiques funcionalidades existentes.
+
+No cambies el diseño general de la tienda.
+
+Reutiliza todos los componentes existentes siempre que sea posible.
+
+Haz únicamente los cambios solicitados.
+
+OBJETIVO
+
+Agregar un sistema profesional de tallas para los productos.
+
+Debe ser completamente intuitivo tanto para el administrador como para el cliente.
+
+El sistema debe ser escalable para que en el futuro puedan agregarse otros tipos de variantes sin tener que rediseñar nuevamente el panel de administración.
+
+PANEL DE ADMINISTRACIÓN
+Nueva sección
+
+Agregar una sección llamada:
+
+Variantes del producto
+
+Esta sección debe estar colapsada por defecto para no ocupar espacio innecesario.
+
+Activar tallas
+
+Dentro de la sección agregar un switch o checkbox:
+
+☐ Este producto tiene tallas
+
+Mientras esté desactivado no debe mostrarse ninguna configuración adicional.
+
+Si se activa...
+
+Mostrar el resto de opciones.
+
+Plantillas de tallas
+
+Agregar un selector desplegable:
+
+Plantilla de tallas
+
+Opciones:
+
+Camisetas
+Tenis Colombia
+Tenis US
+Tenis EU
+Pantalones
+
+El sistema debe quedar preparado para poder agregar nuevas plantillas fácilmente en el futuro.
+
+Lista de tallas
+
+Cuando se seleccione una plantilla deben aparecer automáticamente únicamente las tallas correspondientes.
+
+Camisetas
+
+S
+
+M
+
+L
+
+XL
+
+2XL
+
+Tenis Colombia
+
+36
+
+37
+
+38
+
+39
+
+40
+
+41
+
+42
+
+43
+
+44
+
+Tenis US
+
+7
+
+7.5
+
+8
+
+8.5
+
+9
+
+9.5
+
+10
+
+10.5
+
+11
+
+Tenis EU
+
+39
+
+40
+
+41
+
+42
+
+43
+
+44
+
+45
+
+46
+
+Pantalones
+
+28
+
+30
+
+32
+
+34
+
+36
+
+38
+
+40
+
+42
+
+Cada talla debe tener un checkbox para indicar si está disponible.
+
+Ejemplo:
+
+☑ S
+
+☑ M
+
+☑ L
+
+☒ XL
+
+☒ 2XL
+
+Solo las marcadas estarán disponibles para compra.
+
+BASE DE DATOS
+
+Guardar:
+
+si el producto utiliza tallas
+qué plantilla utiliza
+cuáles tallas están disponibles
+
+No modificar funcionalidades existentes.
+
+No afectar productos antiguos.
+
+Los productos que ya existen deben seguir funcionando normalmente aunque no tengan tallas configuradas.
+
+TIENDA (VISTA DEL CLIENTE)
+
+Si un producto no tiene tallas activadas...
+
+Debe comportarse exactamente igual que ahora.
+
+No mostrar ninguna opción adicional.
+
+Si el producto tiene tallas...
+
+Mostrar debajo del precio una sección:
+
+Selecciona una talla
+
+Las tallas deben verse como botones horizontales modernos.
+
+Ejemplo:
+
+[S] [M] [L] [XL] [2XL]
+
+No utilizar listas verticales.
+
+No utilizar un selector desplegable.
+
+Debe verse limpio, premium y moderno, similar a tiendas como Nike, Adidas o Zara.
+
+Tallas disponibles
+
+Las tallas disponibles deben verse normalmente.
+
+Las tallas no disponibles deben seguir apareciendo pero:
+
+color gris
+menor opacidad
+no deben poder seleccionarse
+
+De esta forma el cliente entiende qué tallas existen y cuáles están agotadas.
+
+No ocultarlas completamente.
+
+Selección obligatoria
+
+Si el producto utiliza tallas...
+
+Debe ser obligatorio seleccionar una antes de poder comprar.
+
+Esto aplica para:
+
+Comprar por WhatsApp
+Comprar contra entrega
+Agregar al carrito
+
+Si el usuario intenta continuar sin elegir una talla...
+
+No permitir continuar.
+
+Mostrar un mensaje amigable como:
+
+"Por favor selecciona una talla antes de continuar."
+
+No utilizar alertas del navegador.
+
+Utilizar el mismo estilo visual del resto del sitio.
+
+Carrito
+
+Cuando un producto tenga talla...
+
+La talla seleccionada debe mostrarse debajo del nombre del producto.
+
+Ejemplo:
+
+Camiseta Hugo Boss
+
+Talla: XL
+
+Pedido
+
+La talla elegida debe guardarse junto con el pedido.
+
+Debe enviarse:
+
+al correo
+al panel administrativo
+al pedido almacenado
+
+Ejemplo:
+
+Producto:
+
+Camiseta Hugo Boss
+
+Talla:
+
+XL
+
+Edición de productos
+
+Si posteriormente el administrador modifica las tallas disponibles...
+
+Los cambios deben reflejarse automáticamente en la tienda.
+
+Ejemplo:
+
+Antes:
+
+☑ S
+
+☑ M
+
+☑ L
+
+☑ XL
+
+Después:
+
+☑ S
+
+☑ M
+
+☑ L
+
+☒ XL
+
+En la tienda:
+
+XL debe aparecer en gris y ya no debe poder seleccionarse.
+
+Experiencia de usuario
+
+El sistema debe sentirse completamente integrado con el resto de la tienda.
+
+No debe parecer una funcionalidad agregada aparte.
+
+Mantener la identidad visual premium de PriveLux.
+
+No sobresaturar el panel administrativo.
+
+Utilizar secciones desplegables para mantener la interfaz limpia.
+
+Antes de comenzar
+
+Analiza primero el proyecto completo.
+
+Identifica los componentes que ya existen para los productos.
+
+Reutiliza todo lo posible.
+
+No dupliques código.
+
+No rompas ninguna funcionalidad existente.
+
+Implementa esta funcionalidad siguiendo la estructura actual del proyecto y realizando únicamente los cambios mínimos necesarios.
