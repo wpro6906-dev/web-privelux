@@ -242,7 +242,7 @@ export function Home() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative h-[92vh] w-full overflow-hidden">
+      <section className="relative h-[72svh] md:h-[92vh] w-full overflow-hidden">
         <div className="absolute inset-0 z-0">
           {/* Cinematic hero — slow Ken-Burns zoom */}
           <motion.img
@@ -264,7 +264,7 @@ export function Home() {
         </div>
 
         {/* ── Content block — desktop: starts just below blimp; mobile: pushed lower to avoid overlap ── */}
-        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-start items-center text-center pt-[38vh] md:pt-[33vh] lg:pt-[30vh] lg:translate-x-[2%]">
+        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-start items-center text-center pt-[25svh] md:pt-[33vh] lg:pt-[30vh] lg:translate-x-[2%]">
 
           {/* Scarface logo — centered between blimp and title */}
           <motion.img
@@ -276,7 +276,7 @@ export function Home() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 0.88, y: 0 }}
             transition={{ duration: 1.4, ease: "easeOut", delay: 0.15 }}
-            className="h-16 md:h-20 lg:h-24 w-auto object-contain mx-auto mb-4 md:mb-5 select-none pointer-events-none"
+            className="h-12 md:h-20 lg:h-24 w-auto object-contain mx-auto mb-3 md:mb-5 select-none pointer-events-none"
           />
 
           {/* Title + description + CTA */}
@@ -285,16 +285,16 @@ export function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.35 }}
           >
-            <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-4 md:mb-5 tracking-tight">
+            <h1 className="font-serif text-2xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-2 md:mb-5 tracking-tight">
               LA AMBICIÓN SE NOTA.
             </h1>
-            <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto mb-7 md:mb-8 tracking-wide">
+            <p className="text-muted-foreground text-xs md:text-base max-w-xl mx-auto mb-5 md:mb-8 tracking-wide">
               Relojes, accesorios y prendas pensadas para quienes valoran los detalles.
             </p>
             <Link href="/shop">
               <Button
                 size="sm"
-                className="rounded-none px-7 py-3 text-xs tracking-widest uppercase border border-foreground/70 bg-transparent text-foreground hover:bg-foreground/10 transition-colors duration-300"
+                className="rounded-none px-6 py-2.5 md:px-7 md:py-3 text-xs tracking-widest uppercase border border-foreground/70 bg-transparent text-foreground hover:bg-foreground/10 transition-colors duration-300"
               >
                 Explorar Catálogo
               </Button>
@@ -305,7 +305,7 @@ export function Home() {
 
       {/* Category Carousel — uses DB categories, infinite loop */}
       {categories.length > 0 && (
-        <section className="pt-8 pb-10 bg-background overflow-hidden">
+        <section className="pt-4 md:pt-8 pb-8 md:pb-10 bg-background overflow-hidden">
           <div className="container mx-auto px-4 mb-4">
             <div className="flex justify-between items-end border-b border-border/50 pb-3">
               <div>
@@ -400,6 +400,7 @@ export function Home() {
           </div>
         </section>
       )}
+
 
       {/* Featured Section */}
       <section className="py-16 bg-background">
