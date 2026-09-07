@@ -220,7 +220,7 @@ router.get("/purchase-requests/stats", async (req, res): Promise<void> => {
   const summary = {
     total: all.length,
     nueva: all.filter((r) => r.status === "nueva").length,
-    contactado: all.filter((r) => r.contactedAt !== null || r.status === "contactado").length,
+    contactado: all.filter((r) => r.status === "contactado").length,
     venta_finalizada: all.filter((r) => r.status === "venta_finalizada").length,
     cancelada: all.filter((r) => r.status === "cancelada").length,
     conversionRate: all.length
@@ -253,14 +253,11 @@ router.get("/purchase-requests/stats", async (req, res): Promise<void> => {
   }
   const byDayVentas = Object.entries(ventasMap).map(([date, count]) => ({ date, count }));
 
-  // byDayContactados — usar contacted_at como fecha; fallback a createdAt para registros legacy con status="contactado"
+  // byDayContactados — same range, only requests whose current status is contactado
   const contactadosMap: Record<string, number> = Object.fromEntries(Object.keys(dayMap).map((k) => [k, 0]));
-  for (const r of all) {
-    const dateToUse = r.contactedAt
-      ? new Date(r.contactedAt)
-      : r.status === "contactado" ? new Date(r.createdAt) : null;
-    if (!dateToUse) continue;
-    const key = bogotaDateKey(dateToUse);
+  for (const r of inRange) {
+    if (r.status !== "contactado") continue;
+    const key = bogotaDateKey(new Date(r.createdAt));
     if (key in contactadosMap) contactadosMap[key]++;
   }
   const byDayContactados = Object.entries(contactadosMap).map(([date, count]) => ({ date, count }));
@@ -415,15 +412,9 @@ router.patch("/purchase-requests/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  // Auto-setear contactedAt cuando se marca como "contactado" y aún no tiene fecha
-  const updateData: Record<string, unknown> = { ...parsed.data };
-  if (parsed.data.status === "contactado" && parsed.data.contactedAt === undefined) {
-    updateData.contactedAt = new Date();
-  }
-
   const [updated] = await db
     .update(purchaseRequestsTable)
-    .set(updateData)
+    .set(parsed.data)
     .where(eq(purchaseRequestsTable.id, params.data.id))
     .returning();
 

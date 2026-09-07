@@ -3527,13 +3527,7 @@ function RequestsSection({
   };
 
   const toggleContacted = (req: PurchaseRequest) => {
-    if (req.contactedAt) {
-      // Desmarcar
-      updateRequest.mutate({ id: req.id, data: { contactedAt: null } });
-    } else {
-      // Marcar como contactado hoy
-      updateRequest.mutate({ id: req.id, data: { contactedAt: new Date() } });
-    }
+    setStatus(req.id, req.status === "contactado" ? "nueva" : "contactado");
   };
 
   const filtered = requests
@@ -3595,7 +3589,7 @@ function RequestsSection({
           fetch(`${apiBase}/api/purchase-requests/${id}`, {
             method: "PATCH",
             headers: { ...authHeaders, "Content-Type": "application/json" },
-            body: JSON.stringify({ contactedAt: new Date().toISOString() }),
+            body: JSON.stringify({ status: "contactado" }),
           }),
         ),
       );
@@ -3912,17 +3906,17 @@ function RequestsSection({
                       {/* Actions */}
                       <div className="space-y-2 pt-1">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          {/* Toggle contactado — independiente del estado principal */}
+                          {/* Toggle del estado contactado */}
                           <button
                             onClick={() => toggleContacted(req)}
                             className={`flex items-center justify-center gap-2 px-3 py-3 md:py-1.5 text-[10px] uppercase tracking-widest border transition-colors ${
-                              req.contactedAt
+                              req.status === "contactado"
                                 ? "border-amber-400/60 bg-amber-400/15 text-amber-300 hover:bg-amber-400/5"
                                 : "border-amber-400/30 text-amber-400 hover:bg-amber-400/10 active:bg-amber-400/20"
                             }`}
                           >
                             <Phone className="h-3.5 w-3.5 md:h-3 md:w-3" />
-                            {req.contactedAt ? "✓ Contactado" : "Contactar"}
+                            {req.status === "contactado" ? "✓ Contactado" : "Contactar"}
                           </button>
                           {req.status !== "venta_finalizada" && (
                             <button
