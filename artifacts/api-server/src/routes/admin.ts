@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import crypto from "crypto";
 import { eq } from "drizzle-orm";
 import { db, adminUsersTable } from "@workspace/db";
 import { AdminLoginBody } from "@workspace/api-zod";
@@ -58,6 +59,38 @@ router.get("/admin/me", async (req, res): Promise<void> => {
   }
 
   res.json({ username });
+});
+
+router.post("/admin/cloudinary-signature", async (req, res): Promise<void> => {
+  const token = extractToken(req.headers.authorization);
+  if (!token || !validateToken(token)) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  const apiKey = process.env.CLOUDINARY_API_KEY?.trim();
+  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim();
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    res.status(503).json({ error: "Cloudinary is not configured" });
+    return;
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const folder = "privelux/products";
+  const signature = crypto
+    .createHash("sha1")
+    .update(`folder=${folder}&timestamp=${timestamp}${apiSecret}`)
+    .digest("hex");
+
+  res.json({
+    cloudName,
+    apiKey,
+    timestamp,
+    folder,
+    signature,
+  });
 });
 
 export default router;
