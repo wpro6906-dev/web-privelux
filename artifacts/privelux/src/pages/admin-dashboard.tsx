@@ -121,6 +121,7 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
+  rectSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -161,6 +162,72 @@ function Field({
       {hint && (
         <p className="text-[10px] text-muted-foreground/50 leading-relaxed">{hint}</p>
       )}
+    </div>
+  );
+}
+
+function SortableProductImageCard({
+  id,
+  url,
+  index,
+  onRemove,
+}: {
+  id: string;
+  url: string;
+  index: number;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.45 : 1,
+        zIndex: isDragging ? 20 : undefined,
+      }}
+      className="relative group bg-[#0a0a0a] border border-white/10 overflow-hidden select-none"
+    >
+      <div className="aspect-square bg-muted overflow-hidden">
+        <img
+          src={cloudinaryImage(url)}
+          alt={`Imagen ${index + 1}`}
+          className="w-full h-full object-cover pointer-events-none"
+        />
+      </div>
+
+      <div className="absolute inset-x-0 top-0 flex items-center justify-between p-1.5 bg-gradient-to-b from-black/75 to-transparent">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Arrastrar para cambiar el orden"
+          className="h-7 w-7 flex items-center justify-center bg-black/55 border border-white/15 text-white/80 cursor-grab active:cursor-grabbing touch-none hover:bg-black/75 transition-colors"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Eliminar imagen"
+          className="h-7 w-7 flex items-center justify-center bg-black/55 border border-white/15 text-white/80 hover:text-red-400 hover:bg-black/75 transition-colors"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 px-2 py-1.5 bg-gradient-to-t from-black/85 to-transparent">
+        <span
+          className={`text-[9px] uppercase tracking-widest ${
+            index === 0 ? "text-primary" : "text-white/65"
+          }`}
+        >
+          {index === 0 ? "Principal" : `Imagen ${index + 1}`}
+        </span>
+      </div>
     </div>
   );
 }
@@ -1337,7 +1404,7 @@ function ProductDialog({
     price: "",
     categoryId: "",
     brandId: "none",
-    images: [""] as string[],
+    images: [] as string[],
     featured: false,
     visible: true,
     stock: "10",
@@ -1352,6 +1419,17 @@ function ProductDialog({
   const [variantesOpen, setVariantesOpen] = useState(false);
 
   const [form, setForm] = useState(blank);
+  const { token } = useAdminAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isFileDragging, setIsFileDragging] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [manualImageUrl, setManualImageUrl] = useState("");
+  const imageSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 150, tolerance: 5 },
+    }),
+  );
 
   useEffect(() => {
     if (forceOpen !== undefined) setOpen(forceOpen);
@@ -1370,7 +1448,7 @@ function ProductDialog({
         price: product?.price?.toString() ?? "",
         categoryId: product?.categoryId?.toString() ?? "",
         brandId: product?.brandId?.toString() ?? "none",
-        images: allImgs.length > 0 ? allImgs : [""],
+        images: allImgs,
         featured: product?.featured ?? false,
         visible: product?.visible ?? true,
         stock: product?.stock?.toString() ?? "10",
@@ -1390,6 +1468,129 @@ function ProductDialog({
     (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v })),
     [],
   );
+
+  const uploadImages = async (files: File[] | FileList) => {
+    const selectedFiles = Array.from(files).filter((file) =>
+      file.type.startsWith("image/"),
+    );
+
+    if (selectedFiles.length === 0) {
+      toast.error("Selecciona archivos de imagen válidos");
+      return;
+    }
+
+    if (!token) {
+      toast.error("Tu sesión de administrador expiró");
+      return;
+    }
+
+    setIsUploadingImages(true);
+    try {
+      const apiBase = (import.meta as any).env?.VITE_API_URL ?? "";
+      const signatureResponse = await fetch(
+        `${apiBase}/api/admin/cloudinary-signature`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: "{}",
+        },
+      );
+
+      if (!signatureResponse.ok) {
+        throw new Error("No fue posible preparar la subida a Cloudinary");
+      }
+
+      const { cloudName, apiKey, timestamp, folder, signature } =
+        await signatureResponse.json();
+
+      const uploadedUrls = await Promise.all(
+        selectedFiles.map(async (file) => {
+          const body = new FormData();
+          body.append("file", file);
+          body.append("api_key", apiKey);
+          body.append("timestamp", String(timestamp));
+          body.append("folder", folder);
+          body.append("signature", signature);
+
+          const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+            { method: "POST", body },
+          );
+
+          if (!response.ok) {
+            let detail = "";
+            try {
+              const errorBody = await response.json();
+              detail = errorBody?.error?.message ? `: ${errorBody.error.message}` : "";
+            } catch {
+              // Cloudinary did not return JSON; keep the generic error.
+            }
+            throw new Error(`Cloudinary rechazó una imagen${detail}`);
+          }
+
+          const uploaded = await response.json();
+          if (!uploaded.secure_url) {
+            throw new Error("Cloudinary no devolvió la URL de la imagen");
+          }
+          return uploaded.secure_url as string;
+        }),
+      );
+
+      setForm((current) => ({
+        ...current,
+        images: [...current.images.filter(Boolean), ...uploadedUrls],
+      }));
+      toast.success(
+        `${uploadedUrls.length} imagen${uploadedUrls.length === 1 ? " subida" : "es subidas"} correctamente`,
+      );
+    } catch (error) {
+      console.error("Error uploading product images", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Error al subir las imágenes a Cloudinary",
+      );
+    } finally {
+      setIsUploadingImages(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImageDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsFileDragging(false);
+    if (!isUploadingImages && event.dataTransfer.files.length > 0) {
+      void uploadImages(event.dataTransfer.files);
+    }
+  };
+
+  const handleImageDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = Number(String(active.id).replace("product-image-", ""));
+    const newIndex = Number(String(over.id).replace("product-image-", ""));
+    if (!Number.isInteger(oldIndex) || !Number.isInteger(newIndex)) return;
+
+    setForm((current) => ({
+      ...current,
+      images: arrayMove(current.images, oldIndex, newIndex),
+    }));
+  };
+
+  const addManualImage = () => {
+    const url = manualImageUrl.trim();
+    if (!url) return;
+    setForm((current) => ({
+      ...current,
+      images: [...current.images.filter(Boolean), url],
+    }));
+    setManualImageUrl("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1543,122 +1744,141 @@ function ProductDialog({
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                 Imágenes del producto
               </span>
-              <a
-                href="https://cloudinary.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-auto flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary transition-colors"
-              >
-                <ExternalLink className="h-2.5 w-2.5" />
-                Subir a Cloudinary
-              </a>
+              {form.images.length > 0 && (
+                <span className="ml-auto text-[9px] uppercase tracking-widest text-muted-foreground/40">
+                  {form.images.length} imagen{form.images.length !== 1 ? "es" : ""}
+                </span>
+              )}
             </div>
-            <p className="text-[10px] text-muted-foreground/50 leading-relaxed -mt-1">
-              Puedes dejar las imágenes vacías por ahora. Se mostrará una imagen genérica hasta que agregues una.
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                if (event.target.files?.length) void uploadImages(event.target.files);
+              }}
+            />
+
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => !isUploadingImages && fileInputRef.current?.click()}
+              onKeyDown={(event) => {
+                if ((event.key === "Enter" || event.key === " ") && !isUploadingImages) {
+                  event.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                if (!isUploadingImages) setIsFileDragging(true);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "copy";
+                if (!isUploadingImages) setIsFileDragging(true);
+              }}
+              onDragLeave={(event) => {
+                event.preventDefault();
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                  setIsFileDragging(false);
+                }
+              }}
+              onDrop={handleImageDrop}
+              className={`min-h-[132px] border border-dashed flex flex-col items-center justify-center gap-2 px-5 py-6 text-center transition-all cursor-pointer outline-none ${
+                isFileDragging
+                  ? "border-primary bg-primary/10"
+                  : "border-white/15 bg-[#0a0a0a] hover:border-primary/50 hover:bg-primary/[0.03]"
+              } ${isUploadingImages ? "cursor-wait opacity-75" : ""}`}
+            >
+              {isUploadingImages ? (
+                <>
+                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                  <p className="text-xs font-medium">Subiendo a Cloudinary…</p>
+                  <p className="text-[10px] text-muted-foreground/50">
+                    No cierres esta ventana hasta que termine la carga.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="h-9 w-9 border border-white/10 bg-white/[0.03] flex items-center justify-center">
+                    <Upload className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="text-xs font-medium">
+                    Arrastra tus imágenes aquí
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/55">
+                    o haz clic para elegir una o varias desde tu equipo
+                  </p>
+                </>
+              )}
+            </div>
+
+            <p className="text-[10px] text-muted-foreground/45 leading-relaxed">
+              Las imágenes se suben directamente a Cloudinary. Después puedes arrastrarlas para cambiar su orden; la primera será la imagen principal. Si no agregas ninguna, se mantendrá la imagen genérica.
             </p>
 
-            <div className="space-y-2">
-              {form.images.map((url, idx) => (
-                <div key={idx} className="flex gap-2 items-start">
-                  {/* Reorder */}
-                  <div className="flex flex-col gap-0.5 pt-1 shrink-0">
-                    <button
-                      type="button"
-                      disabled={idx === 0}
-                      onClick={() =>
-                        setForm((f) => {
-                          const imgs = [...f.images];
-                          [imgs[idx - 1], imgs[idx]] = [imgs[idx], imgs[idx - 1]];
-                          return { ...f, images: imgs };
-                        })
-                      }
-                      className="h-5 w-5 flex items-center justify-center text-muted-foreground/40 hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <ChevronUp className="h-3 w-3" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={idx === form.images.length - 1}
-                      onClick={() =>
-                        setForm((f) => {
-                          const imgs = [...f.images];
-                          [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]];
-                          return { ...f, images: imgs };
-                        })
-                      }
-                      className="h-5 w-5 flex items-center justify-center text-muted-foreground/40 hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-                  </div>
-
-                  {/* Input */}
-                  <div className="flex-1 space-y-1 min-w-0">
-                    <p className="text-[9px] uppercase tracking-widest">
-                      {idx === 0 ? (
-                        <span className="text-primary/70">Principal</span>
-                      ) : (
-                        <span className="text-muted-foreground/30">Imagen {idx + 1}</span>
-                      )}
-                    </p>
-                    <Input
-                      placeholder="https://res.cloudinary.com/…/image.jpg"
-                      value={url}
-                      onChange={(e) =>
-                        setForm((f) => {
-                          const imgs = [...f.images];
-                          imgs[idx] = e.target.value;
-                          return { ...f, images: imgs };
-                        })
-                      }
-                      className={inputCls}
-                    />
-                  </div>
-
-                  {/* Preview */}
-                  {url ? (
-                    <div className="w-10 h-10 shrink-0 bg-muted border border-white/10 overflow-hidden mt-[18px]">
-                      <img
-                        src={cloudinaryImage(url)}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.opacity = "0";
-                        }}
+            {form.images.length > 0 && (
+              <DndContext
+                sensors={imageSensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleImageDragEnd}
+              >
+                <SortableContext
+                  items={form.images.map((_, index) => `product-image-${index}`)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {form.images.map((url, index) => (
+                      <SortableProductImageCard
+                        key={`product-image-${index}-${url}`}
+                        id={`product-image-${index}`}
+                        url={url}
+                        index={index}
+                        onRemove={() =>
+                          setForm((current) => ({
+                            ...current,
+                            images: current.images.filter((_, i) => i !== index),
+                          }))
+                        }
                       />
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 shrink-0 bg-[#0a0a0a] border border-white/10 flex items-center justify-center mt-[18px]">
-                      <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/30" />
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )}
 
-                  {/* Delete */}
-                  <button
-                    type="button"
-                    disabled={form.images.length === 1}
-                    onClick={() =>
-                      setForm((f) => ({
-                        ...f,
-                        images: f.images.filter((_, i) => i !== idx),
-                      }))
+            <div className="pt-1">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/35 mb-1.5">
+                Enlace manual (opcional)
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  value={manualImageUrl}
+                  onChange={(event) => setManualImageUrl(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addManualImage();
                     }
-                    className="h-9 w-6 shrink-0 flex items-center justify-center text-muted-foreground/40 hover:text-destructive disabled:opacity-20 disabled:cursor-not-allowed transition-colors mt-[18px]"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
+                  }}
+                  placeholder="https://res.cloudinary.com/…"
+                  className={inputCls}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addManualImage}
+                  disabled={!manualImageUrl.trim()}
+                  className="rounded-none h-9 px-3 text-[10px] uppercase tracking-widest"
+                >
+                  Añadir
+                </Button>
+              </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, images: [...f.images, ""] }))}
-              className="flex items-center gap-1.5 text-[10px] text-primary/70 hover:text-primary uppercase tracking-widest transition-colors py-1"
-            >
-              <Plus className="h-3 w-3" />
-              Añadir imagen
-            </button>
           </div>
 
           {/* Sale / Oferta */}
