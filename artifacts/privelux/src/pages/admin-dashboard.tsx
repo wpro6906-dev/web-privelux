@@ -135,6 +135,8 @@ const FADE = {
   transition: { duration: 0.2 },
 };
 
+const PRODUCT_PLACEHOLDER_IMAGE = "/product-placeholder.svg";
+
 /* ── Shared: defined at module level to avoid re-mount on every render ── */
 const inputCls =
   "rounded-none border-white/10 bg-[#0a0a0a] h-9 text-xs focus-visible:ring-primary";
@@ -957,22 +959,27 @@ async function exportProductsJson(authHeaders: Record<string, string>) {
     const res = await fetch(`${apiBase}/api/products`, { headers: authHeaders });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const products = await res.json() as any[];
-    const formatted = products.map((p) => ({
-      name: p.name,
-      category: p.categoryName ?? "",
-      ...(p.brandName ? { brand: p.brandName } : {}),
-      price: Number(p.price),
-      ...(p.isOnSale ? {
-        isOnSale: true,
-        originalPrice: Number(p.originalPrice),
-        salePrice: Number(p.salePrice),
-      } : {}),
-      featured: p.featured ?? false,
-      visible: p.visible ?? true,
-      stock: p.stock ?? 0,
-      ...(p.description ? { description: p.description } : {}),
-      images: [p.image, ...(p.imageUrls ?? [])].filter(Boolean),
-    }));
+    const formatted = products.map((p) => {
+      const images = [p.image, ...(p.imageUrls ?? [])]
+        .filter((url): url is string => Boolean(url) && url !== PRODUCT_PLACEHOLDER_IMAGE);
+
+      return {
+        name: p.name,
+        category: p.categoryName ?? "",
+        ...(p.brandName ? { brand: p.brandName } : {}),
+        price: Number(p.price),
+        ...(p.isOnSale ? {
+          isOnSale: true,
+          originalPrice: Number(p.originalPrice),
+          salePrice: Number(p.salePrice),
+        } : {}),
+        featured: p.featured ?? false,
+        visible: p.visible ?? true,
+        stock: p.stock ?? 0,
+        ...(p.description ? { description: p.description } : {}),
+        ...(images.length > 0 ? { images } : {}),
+      };
+    });
     const blob = new Blob([JSON.stringify(formatted, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1046,8 +1053,8 @@ function validateImportRows(
     if (typeof item.price !== "number" || (item.price as number) <= 0) {
       errors.push("Precio inválido (número > 0)");
     }
-    if (!Array.isArray(item.images) || (item.images as unknown[]).length === 0) {
-      errors.push("Mínimo una imagen requerida");
+    if (item.images !== undefined && !Array.isArray(item.images)) {
+      errors.push('"images" debe ser un array de URLs');
     }
 
     const catInput = typeof item.category === "string" ? item.category : "";
@@ -1072,7 +1079,11 @@ function validateImportRows(
 
     if (errors.length > 0) return { index, rawName, valid: false, errors };
 
-    const imgs = (item.images as string[]).filter(Boolean);
+    const imgs = Array.isArray(item.images)
+      ? item.images
+          .filter((img): img is string => typeof img === "string" && img.trim().length > 0)
+          .map((img) => img.trim())
+      : [];
     return {
       index,
       rawName,
@@ -1084,7 +1095,7 @@ function validateImportRows(
         price: item.price as number,
         categoryId: cat!.id,
         ...(brand ? { brandId: brand.id } : {}),
-        image: imgs[0],
+        image: imgs[0] ?? PRODUCT_PLACEHOLDER_IMAGE,
         ...(imgs.length > 1 ? { imageUrls: imgs.slice(1) } : {}),
         featured: typeof item.featured === "boolean" ? item.featured : false,
         visible: typeof item.visible === "boolean" ? item.visible : true,
@@ -1187,7 +1198,7 @@ function ImportJsonDialog({
             <div className="space-y-5">
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Selecciona un archivo <span className="text-white/70 font-medium">.json</span> con un array de productos o un único objeto.
-                Las categorías y marcas deben existir previamente en el sistema.
+                Las categorías y marcas deben existir previamente en el sistema. Las imágenes son opcionales; si no las incluyes, se usará una imagen genérica.
               </p>
               <div
                 className="border border-dashed border-white/15 hover:border-primary/40 transition-colors p-10 flex flex-col items-center gap-4 cursor-pointer"
@@ -1202,7 +1213,7 @@ function ImportJsonDialog({
               <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={handleFile} />
               <div className="bg-[#0d0d0d] border border-white/5 p-4">
                 <p className="text-[10px] text-primary uppercase tracking-widest mb-3">Formato esperado</p>
-                <pre className="text-[10px] text-muted-foreground leading-relaxed overflow-x-auto whitespace-pre">{`[\n  {\n    "name": "Rolex Datejust Gold",\n    "category": "Relojes",\n    "brand": "Rolex",\n    "price": 90000,\n    "featured": true,\n    "description": "Descripción del producto",\n    "images": ["url1", "url2"]\n  }\n]`}</pre>
+                <pre className="text-[10px] text-muted-foreground leading-relaxed overflow-x-auto whitespace-pre">{`[\n  {\n    "name": "Rolex Datejust Gold",\n    "category": "Relojes",\n    "brand": "Rolex",\n    "price": 90000,\n    "featured": true,\n    "description": "Descripción del producto"\n  }\n]`}</pre>
               </div>
             </div>
           )}
@@ -1349,7 +1360,9 @@ function ProductDialog({
   useEffect(() => {
     if (open) {
       const allImgs = product
-        ? [product.image, ...(product.imageUrls ?? [])].filter(Boolean)
+        ? [product.image, ...(product.imageUrls ?? [])].filter(
+            (url): url is string => Boolean(url) && url !== PRODUCT_PLACEHOLDER_IMAGE,
+          )
         : [];
       setForm({
         name: product?.name ?? "",
@@ -1387,7 +1400,7 @@ function ProductDialog({
       price: Number(form.price),
       categoryId: Number(form.categoryId),
       brandId: form.brandId === "none" ? null : Number(form.brandId),
-      image: validImages[0] ?? "",
+      image: validImages[0] ?? PRODUCT_PLACEHOLDER_IMAGE,
       imageUrls: validImages.slice(1),
       featured: form.featured,
       visible: form.visible,
@@ -1541,7 +1554,7 @@ function ProductDialog({
               </a>
             </div>
             <p className="text-[10px] text-muted-foreground/50 leading-relaxed -mt-1">
-              Sube fotos a Cloudinary y pega las URLs. La primera imagen es la principal.
+              Puedes dejar las imágenes vacías por ahora. Se mostrará una imagen genérica hasta que agregues una.
             </p>
 
             <div className="space-y-2">
@@ -1583,13 +1596,12 @@ function ProductDialog({
                   <div className="flex-1 space-y-1 min-w-0">
                     <p className="text-[9px] uppercase tracking-widest">
                       {idx === 0 ? (
-                        <span className="text-primary/70">Principal *</span>
+                        <span className="text-primary/70">Principal</span>
                       ) : (
                         <span className="text-muted-foreground/30">Imagen {idx + 1}</span>
                       )}
                     </p>
                     <Input
-                      required={idx === 0}
                       placeholder="https://res.cloudinary.com/…/image.jpg"
                       value={url}
                       onChange={(e) =>

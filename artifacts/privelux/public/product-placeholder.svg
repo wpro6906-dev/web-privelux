@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Producto sin imagen</title>
+  <desc id="desc">Imagen genérica para productos que todavía no tienen fotografía.</desc>
+  <rect width="900" height="1200" fill="#f1f1f1"/>
+  <g fill="none" stroke="#b8b8b8" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300 450h300l42 360H258l42-360Z"/>
+    <path d="M355 450c0-62 42-112 95-112s95 50 95 112"/>
+  </g>
+  <circle cx="450" cy="628" r="58" fill="#c8c8c8"/>
+  <path d="M355 748c23-59 56-91 95-91s72 32 95 91" fill="#c8c8c8"/>
+  <text x="450" y="930" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" letter-spacing="12" fill="#a7a7a7">PRIVELUX</text>
+  <text x="450" y="984" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" letter-spacing="4" fill="#b6b6b6">SIN IMAGEN</text>
+</svg>
