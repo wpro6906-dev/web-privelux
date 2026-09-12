@@ -90,6 +90,7 @@ import {
   Phone,
   Share2,
   GripVertical,
+  Cloud,
   Mail,
   Clock,
   CheckCircle,
@@ -166,6 +167,47 @@ function Field({
   );
 }
 
+function getCloudinaryCloudName(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== "res.cloudinary.com") return null;
+    return parsed.pathname.split("/").filter(Boolean)[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function getCloudinaryDownloadUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== "res.cloudinary.com") return url;
+
+    const uploadMarker = "/image/upload/";
+    if (!parsed.pathname.includes(uploadMarker)) return url;
+    if (parsed.pathname.includes("/fl_attachment/")) return url;
+
+    parsed.pathname = parsed.pathname.replace(
+      uploadMarker,
+      `${uploadMarker}fl_attachment/`,
+    );
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+function downloadProductImage(url: string) {
+  const downloadUrl = getCloudinaryDownloadUrl(url);
+  const anchor = document.createElement("a");
+  anchor.href = downloadUrl;
+  anchor.target = "_blank";
+  anchor.rel = "noopener noreferrer";
+  anchor.download = "";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
 function SortableProductImageCard({
   id,
   url,
@@ -179,6 +221,16 @@ function SortableProductImageCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
+  const cloudName = getCloudinaryCloudName(url);
+
+  const showCloudinaryOrigin = () => {
+    if (cloudName) {
+      toast.success(`Cloudinary: ${cloudName}`);
+      return;
+    }
+
+    toast.error("No se pudo identificar la cuenta de Cloudinary de esta imagen");
+  };
 
   return (
     <div
@@ -219,7 +271,7 @@ function SortableProductImageCard({
         </button>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 px-2 py-1.5 bg-gradient-to-t from-black/85 to-transparent">
+      <div className="absolute inset-x-0 bottom-0 px-2 py-1.5 bg-gradient-to-t from-black/90 via-black/65 to-transparent flex items-end justify-between gap-2">
         <span
           className={`text-[9px] uppercase tracking-widest ${
             index === 0 ? "text-primary" : "text-white/65"
@@ -227,6 +279,40 @@ function SortableProductImageCard({
         >
           {index === 0 ? "Principal" : `Imagen ${index + 1}`}
         </span>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+            aria-label="Abrir imagen original en Cloudinary"
+            title="Abrir imagen original"
+            className="h-6 w-6 flex items-center justify-center bg-black/60 border border-white/15 text-white/75 hover:text-white hover:bg-black/80 transition-colors"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadProductImage(url)}
+            aria-label="Descargar imagen original"
+            title="Descargar imagen"
+            className="h-6 w-6 flex items-center justify-center bg-black/60 border border-white/15 text-white/75 hover:text-primary hover:bg-black/80 transition-colors"
+          >
+            <Download className="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            onClick={showCloudinaryOrigin}
+            aria-label={
+              cloudName
+                ? `Ver cuenta de Cloudinary: ${cloudName}`
+                : "Ver cuenta de Cloudinary"
+            }
+            title={cloudName ? `Cloudinary: ${cloudName}` : "Ver cuenta de Cloudinary"}
+            className="h-6 w-6 flex items-center justify-center bg-black/60 border border-white/15 text-white/75 hover:text-sky-300 hover:bg-black/80 transition-colors"
+          >
+            <Cloud className="h-3 w-3" />
+          </button>
+        </div>
       </div>
     </div>
   );
