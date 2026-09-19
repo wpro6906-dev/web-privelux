@@ -809,12 +809,14 @@ function ProductsSection({
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [brandFilter, setBrandFilter] = useState<string>("all");
   const [autoEditProduct, setAutoEditProduct] = useState<Product | null>(null);
 
   const { data: products } = useListProducts(
     {
       search: search || undefined,
       category: categoryFilter !== "all" ? categoryFilter : undefined,
+      brand: brandFilter !== "all" ? brandFilter : undefined,
     },
     { request: { headers: authHeaders } },
   );
@@ -886,6 +888,18 @@ function ProductsSection({
             {categories?.map((c) => (
               <option key={c.id} value={c.slug}>
                 {c.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={brandFilter}
+            onChange={(e) => setBrandFilter(e.target.value)}
+            className="h-9 px-3 text-xs bg-[#111] border border-white/10 text-foreground rounded-none uppercase tracking-wider focus:outline-none focus:border-primary/60"
+          >
+            <option value="all">Todas las marcas</option>
+            {brands?.map((b) => (
+              <option key={b.id} value={b.name}>
+                {b.name}
               </option>
             ))}
           </select>
@@ -1121,8 +1135,8 @@ async function exportProductsJson(authHeaders: Record<string, string>) {
         : Number(p.price);
 
       return {
-        // Identificadores estables para que PriveLux Manager reconozca el mismo producto
-        // y pueda omitirlo en futuras importaciones.
+        // Identificadores estables para sincronizar con PriveLux Manager sin
+        // reutilizar el código interno/histórico de la app contable.
         webProductId: Number(p.id),
         sku: `PV-WEB-${String(p.id).padStart(6, "0")}`,
         name: p.name,
