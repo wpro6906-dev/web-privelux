@@ -1116,15 +1116,26 @@ async function exportProductsJson(authHeaders: Record<string, string>) {
       const images = [p.image, ...(p.imageUrls ?? [])]
         .filter((url): url is string => Boolean(url) && url !== PRODUCT_PLACEHOLDER_IMAGE);
 
+      const effectiveSalePrice = p.isOnSale && p.salePrice != null
+        ? Number(p.salePrice)
+        : Number(p.price);
+
       return {
+        // Identificadores estables para que PriveLux Manager reconozca el mismo producto
+        // y pueda omitirlo en futuras importaciones.
+        webProductId: Number(p.id),
+        sku: `PV-WEB-${String(p.id).padStart(6, "0")}`,
         name: p.name,
         category: p.categoryName ?? "",
+        webCategoryId: Number(p.categoryId),
         ...(p.brandName ? { brand: p.brandName } : {}),
+        ...(p.brandId != null ? { webBrandId: Number(p.brandId) } : {}),
         price: Number(p.price),
+        recommendedPrice: effectiveSalePrice,
         ...(p.isOnSale ? {
           isOnSale: true,
-          originalPrice: Number(p.originalPrice),
-          salePrice: Number(p.salePrice),
+          originalPrice: p.originalPrice != null ? Number(p.originalPrice) : Number(p.price),
+          salePrice: effectiveSalePrice,
         } : {}),
         featured: p.featured ?? false,
         visible: p.visible ?? true,
