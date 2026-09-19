@@ -56,13 +56,28 @@ export function BrandsCarousel() {
     }, delayMs);
   }
 
-  /* ── RAF loop ── */
+  /* ── RAF loop ──
+     Measure on resize/layout changes instead of reading scrollWidth every frame.
+     This avoids forced layout work that is noticeably harsher in Safari/WebKit. */
   useEffect(() => {
-    if (!items.length) return;
+    if (!items.length || !trackRef.current) return;
+
+    const track = trackRef.current;
+
+    const updateMeasurement = () => {
+      const oneSet = measureOneSet();
+      if (oneSet > 0) oneSetRef.current = oneSet;
+    };
+
+    const paintPosition = () => {
+      const x = Math.round(posRef.current * 100) / 100;
+      const transform = `translate3d(${x}px, 0, 0)`;
+      track.style.transform = transform;
+      track.style.webkitTransform = transform;
+    };
 
     function loop() {
-      const oneSet = measureOneSet();
-      oneSetRef.current = oneSet;
+      const oneSet = oneSetRef.current;
 
       switch (phaseRef.current) {
         case "autoplay":
@@ -79,29 +94,34 @@ export function BrandsCarousel() {
           break;
         }
 
-        /* "dragging" and "paused": posRef is updated externally, no tick needed */
         default:
           break;
       }
 
       if (oneSet > 0) posRef.current = normalize(posRef.current, oneSet);
-      if (trackRef.current) {
-        trackRef.current.style.transform = `translateX(${posRef.current}px)`;
-      }
-
+      paintPosition();
       rafRef.current = requestAnimationFrame(loop);
     }
 
+    const resizeObserver = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(updateMeasurement)
+      : null;
+    resizeObserver?.observe(track);
+    window.addEventListener("resize", updateMeasurement, { passive: true });
+
     const init = setTimeout(() => {
-      oneSetRef.current = measureOneSet();
-      posRef.current    = -oneSetRef.current;   // start showing middle copy
-      phaseRef.current  = "autoplay";
-      rafRef.current    = requestAnimationFrame(loop);
+      updateMeasurement();
+      posRef.current   = -oneSetRef.current;
+      phaseRef.current = "autoplay";
+      paintPosition();
+      rafRef.current   = requestAnimationFrame(loop);
     }, 80);
 
     return () => {
       clearTimeout(init);
-      if (rafRef.current)     cancelAnimationFrame(rafRef.current);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateMeasurement);
+      if (rafRef.current)      cancelAnimationFrame(rafRef.current);
       if (resumeTimer.current) clearTimeout(resumeTimer.current);
     };
   }, [items.length]);
@@ -214,22 +234,32 @@ export function BrandsCarousel() {
         <div
           ref={trackRef}
           className="flex will-change-transform"
-          style={{ transform: "translateX(0px)" }}
+          style={{
+            transform: "translate3d(0, 0, 0)",
+            WebkitTransform: "translate3d(0, 0, 0)",
+          }}
         >
           {items.map((brand, i) => {
-            const imgSrc = cloudinaryImage(brand.imageUrl);
+            const imgSrc = cloudinaryImage(brand.imageUrl, { width: 900 });
+            const isMiddleCopy = i >= visibleBrands.length && i < visibleBrands.length * 2;
             return (
               <div
                 key={`${brand.id}-${i}`}
                 className="relative flex-none w-[43vw] md:w-[22vw] lg:w-[18vw] aspect-[2/3] overflow-hidden group"
-                style={{ marginRight: "12px" }}
+                style={{ marginRight: "12px", isolation: "isolate" }}
                 data-brand-href={`/shop?brand=${encodeURIComponent(brand.brandName ?? "")}`}
               >
                 <img
                   src={imgSrc}
                   alt={brand.brandName}
                   draggable={false}
+                  loading={isMiddleCopy ? "eager" : "lazy"}
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
+                  style={{
+                    WebkitBackfaceVisibility: "hidden",
+                    backfaceVisibility: "hidden",
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-black/5 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">

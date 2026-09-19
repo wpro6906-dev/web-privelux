@@ -84,11 +84,16 @@ export function Home() {
   /* Build the display list from DB, falling back to local images */
   const categories = useMemo(() => {
     if (!dbCategories || dbCategories.length === 0) return [];
-    return dbCategories.map((cat) => ({
-      slug: cat.slug,
-      label: cat.name,
-      image: cat.image ?? FALLBACK_IMAGES[cat.slug] ?? watchImg,
-    }));
+    return dbCategories.map((cat) => {
+      const fallbackImage = FALLBACK_IMAGES[cat.slug] ?? watchImg;
+      const dbImage = typeof cat.image === "string" ? cat.image.trim() : "";
+      return {
+        slug: cat.slug,
+        label: cat.name,
+        image: dbImage || fallbackImage,
+        fallbackImage,
+      };
+    });
   }, [dbCategories]);
 
   /* Triple the list so there are always enough slides for Embla loop */
@@ -133,13 +138,27 @@ export function Home() {
     }, delay);
   }
 
-  /* RAF loop */
+  /* RAF loop — measure only when layout changes, not on every frame.
+     Avoiding a scrollWidth read on every RAF prevents layout thrashing in Safari. */
   useEffect(() => {
-    if (extendedCategories.length === 0) return;
+    if (extendedCategories.length === 0 || !catTrackRef.current) return;
+
+    const track = catTrackRef.current;
+
+    const updateMeasurement = () => {
+      const one = catMeasure();
+      if (one > 0) catOneSetRef.current = one;
+    };
+
+    const paintPosition = () => {
+      const x = Math.round(catPosRef.current * 100) / 100;
+      const transform = `translate3d(${x}px, 0, 0)`;
+      track.style.transform = transform;
+      track.style.webkitTransform = transform;
+    };
 
     function loop() {
-      const one = catMeasure();
-      catOneSetRef.current = one;
+      const one = catOneSetRef.current;
 
       switch (catPhaseRef.current) {
         case "autoplay":
@@ -158,22 +177,29 @@ export function Home() {
       }
 
       if (one > 0) catPosRef.current = catNorm(catPosRef.current, one);
-      if (catTrackRef.current) {
-        catTrackRef.current.style.transform = `translateX(${catPosRef.current}px)`;
-      }
+      paintPosition();
       catRafRef.current = requestAnimationFrame(loop);
     }
 
+    const resizeObserver = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(updateMeasurement)
+      : null;
+    resizeObserver?.observe(track);
+    window.addEventListener("resize", updateMeasurement, { passive: true });
+
     const init = setTimeout(() => {
-      catOneSetRef.current = catMeasure();
-      catPosRef.current    = -catOneSetRef.current;
-      catPhaseRef.current  = "autoplay";
-      catRafRef.current    = requestAnimationFrame(loop);
+      updateMeasurement();
+      catPosRef.current   = -catOneSetRef.current;
+      catPhaseRef.current = "autoplay";
+      paintPosition();
+      catRafRef.current   = requestAnimationFrame(loop);
     }, 80);
 
     return () => {
       clearTimeout(init);
-      if (catRafRef.current)     cancelAnimationFrame(catRafRef.current);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateMeasurement);
+      if (catRafRef.current)      cancelAnimationFrame(catRafRef.current);
       if (catResumeTimer.current) clearTimeout(catResumeTimer.current);
     };
   }, [extendedCategories.length]);
@@ -345,57 +371,81 @@ export function Home() {
             <div
               ref={catTrackRef}
               className="flex will-change-transform"
-              style={{ transform: "translateX(0px)" }}
+              style={{
+                transform: "translate3d(0, 0, 0)",
+                WebkitTransform: "translate3d(0, 0, 0)",
+              }}
             >
-              {extendedCategories.map((cat, i) => (
-                <Link
-                  key={`${cat.slug}-${i}`}
-                  href={`/categoria/${cat.slug}`}
-                  draggable={false}
-                  data-cat-href={`/categoria/${cat.slug}`}
-                  style={{ userSelect: "none", WebkitUserDrag: "none", marginRight: "12px" } as React.CSSProperties}
-                >
-                  <motion.div
-                    data-card
+              {extendedCategories.map((cat, i) => {
+                const isMiddleCopy = i >= categories.length && i < categories.length * 2;
+                return (
+                  <Link
+                    key={`${cat.slug}-${i}`}
+                    href={`/categoria/${cat.slug}`}
+                    draggable={false}
                     data-cat-href={`/categoria/${cat.slug}`}
-                    data-testid={`category-card-${cat.slug}`}
-                    className="relative flex-none w-[43vw] md:w-[22vw] lg:w-[18vw] aspect-[2/3] overflow-hidden cursor-pointer group rounded md:rounded-none shadow-[0_6px_28px_rgba(0,0,0,0.55)] md:shadow-none ring-1 ring-white/[0.07] md:ring-0"
-                    whileHover={{ scale: 1.01 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="block flex-none w-[43vw] md:w-[22vw] lg:w-[18vw] aspect-[2/3]"
+                    style={{
+                      userSelect: "none",
+                      WebkitUserDrag: "none",
+                      marginRight: "12px",
+                    } as React.CSSProperties}
                   >
-                    <img
-                      src={cloudinaryImage(cat.image)}
-                      alt={cat.label}
-                      draggable={false}
-                      onDragStart={(e) => e.preventDefault()}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none select-none"
-                      style={{ WebkitUserDrag: "none" } as React.CSSProperties}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-black/5 to-transparent pointer-events-none" />
-                    {/* PL monogram — embossed corner watermark */}
-                    <img
-                      src={LOGO_PL}
-                      alt=""
-                      aria-hidden="true"
-                      draggable={false}
-                      loading="lazy"
-                      className="absolute top-3 right-3 h-5 w-auto object-contain opacity-[0.55] select-none pointer-events-none"
-                      style={{ filter: "brightness(0) invert(1)", WebkitUserDrag: "none" } as React.CSSProperties}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">
-                      <p className="font-serif text-base md:text-lg font-medium text-white tracking-wider uppercase">
-                        {cat.label}
-                      </p>
-                      <div className="mt-1 flex items-center gap-1 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-                        <span className="text-[10px] text-white/70 uppercase tracking-widest">
-                          Ver más
-                        </span>
-                        <ChevronRight className="h-3 w-3 text-white/70" />
+                    <div
+                      data-card
+                      data-cat-href={`/categoria/${cat.slug}`}
+                      data-testid={`category-card-${cat.slug}`}
+                      className="relative w-full h-full overflow-hidden cursor-pointer group rounded md:rounded-none shadow-[0_6px_28px_rgba(0,0,0,0.55)] md:shadow-none ring-1 ring-white/[0.07] md:ring-0"
+                      style={{ isolation: "isolate" }}
+                    >
+                      <img
+                        src={cloudinaryImage(cat.image, { width: 900 })}
+                        alt={cat.label}
+                        draggable={false}
+                        loading={isMiddleCopy ? "eager" : "lazy"}
+                        decoding="async"
+                        onDragStart={(e) => e.preventDefault()}
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          const fallback = cat.fallbackImage;
+                          if (fallback && img.getAttribute("data-fallback-applied") !== "true") {
+                            img.setAttribute("data-fallback-applied", "true");
+                            img.src = fallback;
+                          }
+                        }}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none select-none"
+                        style={{
+                          WebkitUserDrag: "none",
+                          WebkitBackfaceVisibility: "hidden",
+                          backfaceVisibility: "hidden",
+                        } as React.CSSProperties}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-black/5 to-transparent pointer-events-none" />
+                      {/* PL monogram — embossed corner watermark */}
+                      <img
+                        src={LOGO_PL}
+                        alt=""
+                        aria-hidden="true"
+                        draggable={false}
+                        loading="lazy"
+                        className="absolute top-3 right-3 h-5 w-auto object-contain opacity-[0.55] select-none pointer-events-none"
+                        style={{ filter: "brightness(0) invert(1)", WebkitUserDrag: "none" } as React.CSSProperties}
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">
+                        <p className="font-serif text-base md:text-lg font-medium text-white tracking-wider uppercase">
+                          {cat.label}
+                        </p>
+                        <div className="mt-1 flex items-center gap-1 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="text-[10px] text-white/70 uppercase tracking-widest">
+                            Ver más
+                          </span>
+                          <ChevronRight className="h-3 w-3 text-white/70" />
+                        </div>
                       </div>
                     </div>
-                  </motion.div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
