@@ -812,6 +812,56 @@ function ProductsSection({
   const [brandFilter, setBrandFilter] = useState<string>("all");
   const [autoEditProduct, setAutoEditProduct] = useState<Product | null>(null);
 
+  // Dataset completo para construir filtros inteligentes sin combinaciones vacías.
+  const { data: allProducts } = useListProducts(
+    {},
+    { request: { headers: authHeaders } },
+  );
+
+  const availableCategories = useMemo(() => {
+    const categoryIdsWithProducts = new Set(
+      (allProducts ?? []).map((p) => String(p.categoryId)),
+    );
+
+    return (categories ?? []).filter((c) =>
+      categoryIdsWithProducts.has(String(c.id)),
+    );
+  }, [allProducts, categories]);
+
+  const availableBrands = useMemo(() => {
+    const source = allProducts ?? [];
+    const selectedCategory =
+      categoryFilter === "all"
+        ? null
+        : categories?.find((c) => c.slug === categoryFilter);
+
+    const brandIdsWithProducts = new Set(
+      source
+        .filter(
+          (p) =>
+            !selectedCategory ||
+            String(p.categoryId) === String(selectedCategory.id),
+        )
+        .filter((p) => p.brandId != null)
+        .map((p) => String(p.brandId)),
+    );
+
+    return (brands ?? []).filter((b) =>
+      brandIdsWithProducts.has(String(b.id)),
+    );
+  }, [allProducts, brands, categories, categoryFilter]);
+
+  // Si al cambiar de categoría la marca actual ya no tiene productos,
+  // volvemos automáticamente a "Todas las marcas".
+  useEffect(() => {
+    if (
+      brandFilter !== "all" &&
+      !availableBrands.some((b) => b.name === brandFilter)
+    ) {
+      setBrandFilter("all");
+    }
+  }, [availableBrands, brandFilter]);
+
   const { data: products } = useListProducts(
     {
       search: search || undefined,
@@ -885,7 +935,7 @@ function ProductsSection({
             className="h-9 px-3 text-xs bg-[#111] border border-white/10 text-foreground rounded-none uppercase tracking-wider focus:outline-none focus:border-primary/60"
           >
             <option value="all">Todas las categorías</option>
-            {categories?.map((c) => (
+            {availableCategories.map((c) => (
               <option key={c.id} value={c.slug}>
                 {c.name}
               </option>
@@ -897,7 +947,7 @@ function ProductsSection({
             className="h-9 px-3 text-xs bg-[#111] border border-white/10 text-foreground rounded-none uppercase tracking-wider focus:outline-none focus:border-primary/60"
           >
             <option value="all">Todas las marcas</option>
-            {brands?.map((b) => (
+            {availableBrands.map((b) => (
               <option key={b.id} value={b.name}>
                 {b.name}
               </option>
