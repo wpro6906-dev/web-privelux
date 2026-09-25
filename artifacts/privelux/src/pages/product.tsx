@@ -587,6 +587,8 @@ export function ProductPage() {
   const { addToCart, items: cartItems } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
+  const [unavailableSizeNotice, setUnavailableSizeNotice] = useState<string | null>(null);
+  const unavailableSizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [flyFrom, setFlyFrom] = useState<DOMRect | null>(null);
@@ -615,6 +617,33 @@ export function ProductPage() {
     // Each call gets a unique ID so Sonner always renders a fresh toast
     toast.error(msg, { id: `stock-${Date.now()}`, duration: 4000 });
   };
+
+  const handleSizeSelect = (size: string, available: boolean) => {
+    if (unavailableSizeTimeoutRef.current) {
+      clearTimeout(unavailableSizeTimeoutRef.current);
+      unavailableSizeTimeoutRef.current = null;
+    }
+
+    if (!available) {
+      setUnavailableSizeNotice(size);
+      unavailableSizeTimeoutRef.current = setTimeout(() => {
+        setUnavailableSizeNotice(null);
+        unavailableSizeTimeoutRef.current = null;
+      }, 2600);
+      return;
+    }
+
+    setUnavailableSizeNotice(null);
+    setSelectedSize(size);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (unavailableSizeTimeoutRef.current) {
+        clearTimeout(unavailableSizeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -975,10 +1004,16 @@ export function ProductPage() {
             {/* Size selector — only for products with sizes enabled */}
             {product.hasSizes && product.sizeTemplate && SIZE_TEMPLATES[product.sizeTemplate] && (
               <div className="mb-6">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
-                  Selecciona una talla
-                </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-foreground/75">
+                    Selecciona una talla
+                  </p>
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground/45">
+                    Tachada = agotada
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2.5">
                   {SIZE_TEMPLATES[product.sizeTemplate].map((size) => {
                     const available = (product.availableSizes ?? []).includes(size);
                     const selected = selectedSize === size;
@@ -986,24 +1021,51 @@ export function ProductPage() {
                       <button
                         key={size}
                         type="button"
-                        disabled={!available}
-                        onClick={() => available && setSelectedSize(size)}
-                        className={`min-w-[44px] px-3.5 py-2.5 text-xs font-medium border transition-all ${
+                        aria-disabled={!available}
+                        aria-label={available ? `Seleccionar talla ${size}` : `Talla ${size} agotada`}
+                        title={available ? `Talla ${size}` : `Talla ${size} agotada`}
+                        onClick={() => handleSizeSelect(size, available)}
+                        className={`relative min-w-[46px] px-3.5 py-2.5 text-xs font-semibold border transition-all duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                           !available
-                            ? "border-white/5 text-muted-foreground/25 cursor-not-allowed bg-transparent line-through"
+                            ? "border-white/10 text-foreground/30 bg-white/[0.015] cursor-not-allowed hover:border-red-400/30 hover:text-foreground/40"
                             : selected
-                            ? "border-primary text-primary bg-primary/10"
-                            : "border-white/15 text-foreground/80 hover:border-white/40 hover:bg-white/5 cursor-pointer"
+                            ? "border-primary text-primary bg-primary/10 shadow-[0_0_0_1px_rgba(212,175,55,0.12)]"
+                            : "border-white/25 text-foreground/90 hover:border-primary/70 hover:text-primary hover:bg-primary/[0.04] cursor-pointer"
                         }`}
                       >
-                        {size}
+                        <span className="relative z-10">{size}</span>
+                        {!available && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute left-2 right-2 top-1/2 h-px -translate-y-1/2 -rotate-[14deg] bg-red-400/70"
+                          />
+                        )}
                       </button>
                     );
                   })}
                 </div>
+
+                <AnimatePresence initial={false} mode="wait">
+                  {unavailableSizeNotice && (
+                    <motion.div
+                      key={unavailableSizeNotice}
+                      role="status"
+                      aria-live="polite"
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.18 }}
+                      className="mt-3 inline-flex items-center gap-2 border border-red-400/20 bg-red-400/[0.06] px-3 py-2 text-[11px] text-red-300/90"
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                      <span>La talla {unavailableSizeNotice} está agotada por el momento.</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {selectedSize && (
-                  <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mt-2">
-                    Talla seleccionada: <span className="text-primary/80 font-medium">{selectedSize}</span>
+                  <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wider mt-2.5">
+                    Talla seleccionada: <span className="text-primary font-semibold">{selectedSize}</span>
                   </p>
                 )}
               </div>
