@@ -217,10 +217,11 @@ router.get("/purchase-requests/stats", async (req, res): Promise<void> => {
   });
 
   const inRangeVentas = inRange.filter((r) => r.status === "venta_finalizada");
+  const wasContacted = (r: typeof all[number]) => Boolean(r.contactedAt) || r.status === "contactado";
   const summary = {
     total: all.length,
     nueva: all.filter((r) => r.status === "nueva").length,
-    contactado: all.filter((r) => r.status === "contactado").length,
+    contactado: all.filter(wasContacted).length,
     venta_finalizada: all.filter((r) => r.status === "venta_finalizada").length,
     cancelada: all.filter((r) => r.status === "cancelada").length,
     conversionRate: all.length
@@ -253,10 +254,10 @@ router.get("/purchase-requests/stats", async (req, res): Promise<void> => {
   }
   const byDayVentas = Object.entries(ventasMap).map(([date, count]) => ({ date, count }));
 
-  // byDayContactados — same range, only requests whose current status is contactado
+  // byDayContactados — same range, including requests that were contacted and later finalized/cancelled
   const contactadosMap: Record<string, number> = Object.fromEntries(Object.keys(dayMap).map((k) => [k, 0]));
   for (const r of inRange) {
-    if (r.status !== "contactado") continue;
+    if (!wasContacted(r)) continue;
     const key = bogotaDateKey(new Date(r.createdAt));
     if (key in contactadosMap) contactadosMap[key]++;
   }
@@ -412,16 +413,78 @@ router.patch("/purchase-requests/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [updated] = await db
-    .update(purchaseRequestsTable)
-    .set(parsed.data)
-    .where(eq(purchaseRequestsTable.id, params.data.id))
-    .returning();
+  const hasContactedFlag = Object.prototype.hasOwnProperty.call(req.body ?? {}, "contacted");
+  const contactedFlag = (req.body as { contacted?: unknown } | undefined)?.contacted;
+  if (hasContactedFlag && typeof contactedFlag !== "boolean") {
+    res.status(400).json({ error: "El campo contacted debe ser booleano." });
+    return;
+  }
 
-  if (!updated) {
+  const [current] = await db
+    .select()
+    .from(purchaseRequestsTable)
+    .where(eq(purchaseRequestsTable.id, params.data.id));
+
+  if (!current) {
     res.status(404).json({ error: "Not found" });
     return;
   }
+
+  const updateData: {
+    status?: typeof current.status;
+    contactedAt?: Date | null;
+  } = {};
+
+  if (parsed.data.status !== undefined) {
+    updateData.status = parsed.data.status;
+
+    // Keep old clients compatible: marking as contactado also records the contact.
+    if (parsed.data.status === "contactado") {
+      updateData.contactedAt = current.contactedAt ?? new Date();
+    }
+
+    // If an old contactado record is finalized/cancelled, preserve that it was contacted.
+    if (
+      (parsed.data.status === "venta_finalizada" || parsed.data.status === "cancelada") &&
+      current.status === "contactado" &&
+      !current.contactedAt
+    ) {
+      updateData.contactedAt = new Date();
+    }
+
+    // Legacy behavior for old clients that used status=nueva to undo contactado.
+    if (parsed.data.status === "nueva" && current.status === "contactado" && !hasContactedFlag) {
+      updateData.contactedAt = null;
+    }
+  }
+
+  if (hasContactedFlag) {
+    if (contactedFlag === true) {
+      updateData.contactedAt = current.contactedAt ?? new Date();
+      // A new request becomes pending/contactado. Finalized/cancelled keep their main status.
+      if (parsed.data.status === undefined && current.status === "nueva") {
+        updateData.status = "contactado";
+      }
+    } else {
+      updateData.contactedAt = null;
+      const effectiveStatus = parsed.data.status ?? current.status;
+      // Removing contactado from a pending request returns it to Nueva.
+      if (effectiveStatus === "contactado") {
+        updateData.status = "nueva";
+      }
+    }
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    res.status(400).json({ error: "No hay cambios para aplicar." });
+    return;
+  }
+
+  const [updated] = await db
+    .update(purchaseRequestsTable)
+    .set(updateData)
+    .where(eq(purchaseRequestsTable.id, params.data.id))
+    .returning();
 
   res.json(updated);
 });

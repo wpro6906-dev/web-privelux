@@ -3884,11 +3884,19 @@ function RequestsSection({
   const updateRequest = useUpdatePurchaseRequest({
     request: { headers: authHeaders },
     mutation: {
+      retry: (failureCount, error) => {
+        const status = (error as { status?: number } | undefined)?.status;
+        return failureCount < 1 && (status === undefined || status >= 500);
+      },
+      retryDelay: 700,
       onSuccess: () => {
         toast.success("Estado actualizado");
         invalidateAll();
       },
-      onError: () => toast.error("Error al actualizar"),
+      onError: (error) => {
+        const message = (error as { data?: { error?: string } } | undefined)?.data?.error;
+        toast.error(message || "Error al actualizar");
+      },
     },
   });
 
@@ -3915,25 +3923,35 @@ function RequestsSection({
     },
   });
 
+  const isContacted = (req: PurchaseRequest) => {
+    const contactedAt = (req as PurchaseRequest & { contactedAt?: string | null }).contactedAt;
+    return Boolean(contactedAt) || req.status === "contactado";
+  };
+
   const setStatus = (id: number, status: string) => {
     updateRequest.mutate({ id, data: { status: status as PurchaseRequest["status"] } });
   };
 
   const toggleContacted = (req: PurchaseRequest) => {
-    setStatus(req.id, req.status === "contactado" ? "nueva" : "contactado");
+    updateRequest.mutate({
+      id: req.id,
+      data: { contacted: !isContacted(req) } as any,
+    });
   };
 
   const filtered = requests
     ? statusFilter === "all"
       ? requests
-      : requests.filter((r) => r.status === statusFilter)
+      : statusFilter === "contactado"
+        ? requests.filter(isContacted)
+        : requests.filter((r) => r.status === statusFilter)
     : [];
 
   const counts = requests
     ? {
         total: requests.length,
         nueva: requests.filter((r) => r.status === "nueva").length,
-        contactado: requests.filter((r) => r.status === "contactado").length,
+        contactado: requests.filter(isContacted).length,
         venta_finalizada: requests.filter((r) => r.status === "venta_finalizada").length,
         cancelada: requests.filter((r) => r.status === "cancelada").length,
       }
@@ -3952,23 +3970,44 @@ function RequestsSection({
     setSelected(selected.size === filtered.length ? new Set() : new Set(filtered.map((r) => r.id)));
   };
 
+  const patchPurchaseRequest = async (id: number, body: Record<string, unknown>) => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      let response: Response;
+      try {
+        response = await fetch(`${apiBase}/api/purchase-requests/${id}`, {
+          method: "PATCH",
+          headers: { ...authHeaders, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } catch (error) {
+        if (attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 700));
+          continue;
+        }
+        throw error;
+      }
+
+      if (response.ok) return;
+
+      if (response.status >= 500 && attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 700));
+        continue;
+      }
+
+      const payload = await response.json().catch(() => null) as { error?: string } | null;
+      throw new Error(payload?.error || `Error ${response.status} al actualizar`);
+    }
+  };
+
   const bulkSetStatus = async (status: string) => {
     setBulkPending(true);
     try {
-      await Promise.all(
-        [...selected].map((id) =>
-          fetch(`${apiBase}/api/purchase-requests/${id}`, {
-            method: "PATCH",
-            headers: { ...authHeaders, "Content-Type": "application/json" },
-            body: JSON.stringify({ status }),
-          }),
-        ),
-      );
+      await Promise.all([...selected].map((id) => patchPurchaseRequest(id, { status })));
       toast.success(`${selected.size} solicitud${selected.size > 1 ? "es" : ""} actualizada${selected.size > 1 ? "s" : ""}`);
       setSelected(new Set());
       invalidateAll();
-    } catch {
-      toast.error("Error en la acción masiva");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error en la acción masiva");
     } finally {
       setBulkPending(false);
     }
@@ -3977,20 +4016,12 @@ function RequestsSection({
   const bulkSetContacted = async () => {
     setBulkPending(true);
     try {
-      await Promise.all(
-        [...selected].map((id) =>
-          fetch(`${apiBase}/api/purchase-requests/${id}`, {
-            method: "PATCH",
-            headers: { ...authHeaders, "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "contactado" }),
-          }),
-        ),
-      );
+      await Promise.all([...selected].map((id) => patchPurchaseRequest(id, { contacted: true })));
       toast.success(`${selected.size} solicitud${selected.size > 1 ? "es" : ""} marcada${selected.size > 1 ? "s" : ""} como contactada${selected.size > 1 ? "s" : ""}`);
       setSelected(new Set());
       invalidateAll();
-    } catch {
-      toast.error("Error en la acción masiva");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error en la acción masiva");
     } finally {
       setBulkPending(false);
     }
@@ -4303,13 +4334,13 @@ function RequestsSection({
                           <button
                             onClick={() => toggleContacted(req)}
                             className={`flex items-center justify-center gap-2 px-3 py-3 md:py-1.5 text-[10px] uppercase tracking-widest border transition-colors ${
-                              req.status === "contactado"
+                              isContacted(req)
                                 ? "border-amber-400/60 bg-amber-400/15 text-amber-300 hover:bg-amber-400/5"
                                 : "border-amber-400/30 text-amber-400 hover:bg-amber-400/10 active:bg-amber-400/20"
                             }`}
                           >
                             <Phone className="h-3.5 w-3.5 md:h-3 md:w-3" />
-                            {req.status === "contactado" ? "✓ Contactado" : "Contactar"}
+                            {isContacted(req) ? "✓ Contactado" : "Contactar"}
                           </button>
                           {req.status !== "venta_finalizada" && (
                             <button
