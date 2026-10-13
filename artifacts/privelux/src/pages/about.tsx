@@ -372,11 +372,11 @@ export function About() {
                 <div className="w-1.5 h-1.5 bg-primary/60 rotate-45" />
                 <div className="h-[1px] w-16 bg-gradient-to-l from-transparent to-primary/60" />
               </div>
-              <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl font-semibold uppercase tracking-[0.18em] text-foreground">
-                La ambición
+              <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold uppercase tracking-[0.06em] leading-tight text-foreground">
+                Cada gran historia comienza
               </h2>
-              <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl font-semibold uppercase tracking-[0.18em] text-primary">
-                se nota.
+              <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold uppercase tracking-[0.06em] leading-tight text-primary mt-2">
+                con el valor de intentarlo.
               </h2>
               <div className="flex items-center gap-6 justify-center mt-6">
                 <div className="h-[1px] w-16 bg-gradient-to-r from-transparent to-primary/40" />

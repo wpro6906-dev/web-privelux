@@ -311,8 +311,8 @@ export function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.35 }}
           >
-            <h1 className="font-serif text-2xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-2 md:mb-5 tracking-tight">
-              LA AMBICIÓN SE NOTA.
+            <h1 className="font-serif text-2xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-2 md:mb-5 tracking-tight leading-tight">
+              Venimos de la nada. Vamos por todo🏆.
             </h1>
             <p className="text-muted-foreground text-xs md:text-base max-w-xl mx-auto mb-5 md:mb-8 tracking-wide">
               Relojes, accesorios y prendas pensadas para quienes valoran los detalles.
