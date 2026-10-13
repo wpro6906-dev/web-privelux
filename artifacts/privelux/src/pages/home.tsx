@@ -310,12 +310,83 @@ export function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.35 }}
+            className="w-full"
           >
-            <h1 className="font-serif text-2xl md:text-5xl lg:text-6xl font-semibold text-foreground mb-2 md:mb-5 tracking-tight leading-tight">
-              Venimos de la nada. Vamos por todo🏆.
+            <style>{`
+              @import url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
+
+              .privelux-hero-title {
+                text-wrap: balance;
+              }
+
+              .privelux-hero-top-line {
+                display: block;
+                font-family: var(--app-font-serif);
+                font-weight: 700;
+                letter-spacing: -0.045em;
+                line-height: 0.94;
+                color: rgba(250, 246, 239, 0.98);
+                text-shadow: 0 2px 22px rgba(0, 0, 0, 0.38);
+              }
+
+              .privelux-hero-bottom-line {
+                display: block;
+                font-family: 'Pirata One', var(--app-font-serif), serif;
+                font-weight: 400;
+                letter-spacing: 0.015em;
+                line-height: 0.9;
+                margin-top: 0.08em;
+                background: linear-gradient(180deg, #f8df95 0%, #e7bd59 40%, #c7922e 100%);
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+                text-shadow: 0 2px 16px rgba(0, 0, 0, 0.24);
+              }
+
+              .privelux-hero-subtitle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.9rem;
+                max-width: 56rem;
+                margin: 0 auto;
+                color: rgba(230, 224, 213, 0.84);
+                font-size: clamp(0.72rem, 0.4rem + 0.8vw, 1rem);
+                letter-spacing: 0.28em;
+                text-transform: uppercase;
+              }
+
+              .privelux-hero-subtitle::before,
+              .privelux-hero-subtitle::after {
+                content: '';
+                display: block;
+                width: clamp(2rem, 5vw, 4.5rem);
+                height: 1px;
+                background: linear-gradient(90deg, rgba(214, 168, 74, 0), rgba(214, 168, 74, 0.85), rgba(214, 168, 74, 0));
+                flex-shrink: 0;
+              }
+
+              @media (max-width: 768px) {
+                .privelux-hero-top-line {
+                  line-height: 0.98;
+                }
+
+                .privelux-hero-bottom-line {
+                  line-height: 0.92;
+                }
+
+                .privelux-hero-subtitle {
+                  letter-spacing: 0.18em;
+                  gap: 0.6rem;
+                }
+              }
+            `}</style>
+            <h1 className="privelux-hero-title mb-3 md:mb-5 text-[2.45rem] leading-none md:text-6xl lg:text-7xl xl:text-[5.8rem] font-semibold">
+              <span className="privelux-hero-top-line">Venimos de la nada.</span>
+              <span className="privelux-hero-bottom-line">Vamos por todo.</span>
             </h1>
-            <p className="text-muted-foreground text-xs md:text-base max-w-xl mx-auto mb-5 md:mb-8 tracking-wide">
-              Relojes, accesorios y prendas pensadas para quienes valoran los detalles.
+            <p className="privelux-hero-subtitle mb-5 md:mb-8 px-2">
+              Representa el carácter, la ambición y el hambre de superación.
             </p>
             <Link href="/shop">
               <Button
