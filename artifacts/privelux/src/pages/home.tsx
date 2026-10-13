@@ -313,7 +313,7 @@ export function Home() {
             className="w-full"
           >
             <style>{`
-              @import url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
+              @import url('https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap');
 
               .privelux-hero-title {
                 text-wrap: balance;
@@ -325,45 +325,45 @@ export function Home() {
                 font-weight: 700;
                 letter-spacing: -0.045em;
                 line-height: 0.94;
-                color: rgba(250, 246, 239, 0.98);
-                text-shadow: 0 2px 22px rgba(0, 0, 0, 0.38);
+                color: rgba(248, 243, 236, 0.97);
+                text-shadow:
+                  0 1px 0 rgba(255, 255, 255, 0.18),
+                  0 2px 8px rgba(0, 0, 0, 0.22),
+                  0 10px 24px rgba(0, 0, 0, 0.32);
               }
 
               .privelux-hero-bottom-line {
                 display: block;
-                font-family: 'Pirata One', var(--app-font-serif), serif;
-                font-weight: 400;
+                font-family: 'UnifrakturCook', var(--app-font-serif), serif;
+                font-weight: 700;
                 letter-spacing: 0.015em;
-                line-height: 0.9;
-                margin-top: 0.08em;
-                background: linear-gradient(180deg, #f8df95 0%, #e7bd59 40%, #c7922e 100%);
+                line-height: 0.92;
+                margin-top: 0.02em;
+                padding-inline: 0.08em;
+                background:
+                  linear-gradient(180deg, #fff7d8 0%, #f6df9a 14%, #eec86a 28%, #a96e17 49%, #f7e39b 66%, #d69a35 84%, #8e5a12 100%);
                 -webkit-background-clip: text;
                 background-clip: text;
                 -webkit-text-fill-color: transparent;
-                text-shadow: 0 2px 16px rgba(0, 0, 0, 0.24);
+                filter: drop-shadow(0 2px 1px rgba(66, 38, 2, 0.65)) drop-shadow(0 5px 10px rgba(0, 0, 0, 0.28));
+                text-shadow:
+                  -1px -1px 0 rgba(255, 245, 198, 0.5),
+                  1px 1px 0 rgba(123, 75, 11, 0.55),
+                  0 0 18px rgba(239, 195, 92, 0.16);
+                position: relative;
               }
 
-              .privelux-hero-subtitle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.9rem;
-                max-width: 56rem;
-                margin: 0 auto;
-                color: rgba(230, 224, 213, 0.84);
-                font-size: clamp(0.72rem, 0.4rem + 0.8vw, 1rem);
-                letter-spacing: 0.28em;
-                text-transform: uppercase;
-              }
-
-              .privelux-hero-subtitle::before,
-              .privelux-hero-subtitle::after {
+              .privelux-hero-bottom-line::before {
                 content: '';
-                display: block;
-                width: clamp(2rem, 5vw, 4.5rem);
-                height: 1px;
-                background: linear-gradient(90deg, rgba(214, 168, 74, 0), rgba(214, 168, 74, 0.85), rgba(214, 168, 74, 0));
-                flex-shrink: 0;
+                position: absolute;
+                left: 12%;
+                right: 12%;
+                top: 16%;
+                height: 18%;
+                border-radius: 999px;
+                background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,248,220,0.36), rgba(255,255,255,0));
+                pointer-events: none;
+                mix-blend-mode: screen;
               }
 
               @media (max-width: 768px) {
@@ -372,12 +372,8 @@ export function Home() {
                 }
 
                 .privelux-hero-bottom-line {
-                  line-height: 0.92;
-                }
-
-                .privelux-hero-subtitle {
-                  letter-spacing: 0.18em;
-                  gap: 0.6rem;
+                  line-height: 0.94;
+                  margin-top: 0.06em;
                 }
               }
             `}</style>
@@ -385,9 +381,7 @@ export function Home() {
               <span className="privelux-hero-top-line">Venimos de la nada.</span>
               <span className="privelux-hero-bottom-line">Vamos por todo.</span>
             </h1>
-            <p className="privelux-hero-subtitle mb-5 md:mb-8 px-2">
-              Representa el carácter, la ambición y el hambre de superación.
-            </p>
+            <div className="mb-5 md:mb-8" />
             <Link href="/shop">
               <Button
                 size="sm"
