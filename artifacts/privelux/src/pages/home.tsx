@@ -318,7 +318,7 @@ export function Home() {
               alt="Venimos de la nada. Vamos por todo."
               draggable={false}
               loading="eager"
-              className="w-full max-w-[350px] sm:max-w-[480px] md:max-w-[760px] lg:max-w-[1000px] xl:max-w-[1120px] h-auto mx-auto mb-3 md:mb-5 select-none pointer-events-none drop-shadow-[0_10px_30px_rgba(0,0,0,0.38)]"
+              className="w-full max-w-[240px] sm:max-w-[340px] md:max-w-[520px] lg:max-w-[650px] xl:max-w-[720px] h-auto mx-auto mb-3 md:mb-5 select-none pointer-events-none drop-shadow-[0_10px_30px_rgba(0,0,0,0.38)]"
             />
             <p className="text-muted-foreground text-xs md:text-base max-w-xl mx-auto mb-5 md:mb-8 tracking-wide px-3">
               Relojes, accesorios y prendas pensadas para quienes valoran los detalles.
