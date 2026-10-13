@@ -313,75 +313,98 @@ export function Home() {
             className="w-full"
           >
             <style>{`
-              @import url('https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap');
+              @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Grenze+Gotisch:wght@500;600;700&display=swap');
 
               .privelux-hero-title {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
                 text-wrap: balance;
+                width: 100%;
               }
 
               .privelux-hero-top-line {
                 display: block;
-                font-family: var(--app-font-serif);
+                font-family: 'Cormorant Garamond', var(--app-font-serif), serif;
+                font-size: clamp(2.2rem, 4.2vw, 4.5rem);
                 font-weight: 700;
+                line-height: 0.95;
                 letter-spacing: -0.045em;
-                line-height: 0.94;
-                color: rgba(248, 243, 236, 0.97);
+                color: rgba(248, 245, 239, 0.98);
+                text-align: center;
                 text-shadow:
-                  0 1px 0 rgba(255, 255, 255, 0.18),
-                  0 2px 8px rgba(0, 0, 0, 0.22),
-                  0 10px 24px rgba(0, 0, 0, 0.32);
+                  0 1px 0 rgba(255,255,255,0.18),
+                  0 6px 24px rgba(0,0,0,0.34);
+                margin-bottom: 0.18em;
               }
 
               .privelux-hero-bottom-line {
                 display: block;
-                font-family: 'UnifrakturCook', var(--app-font-serif), serif;
-                font-weight: 700;
-                letter-spacing: 0.015em;
-                line-height: 0.92;
-                margin-top: 0.02em;
-                padding-inline: 0.08em;
-                background:
-                  linear-gradient(180deg, #fff7d8 0%, #f6df9a 14%, #eec86a 28%, #a96e17 49%, #f7e39b 66%, #d69a35 84%, #8e5a12 100%);
+                font-family: 'Grenze Gotisch', var(--app-font-serif), serif;
+                font-size: clamp(3.35rem, 8vw, 7.65rem);
+                font-weight: 600;
+                line-height: 0.88;
+                letter-spacing: -0.018em;
+                text-align: center;
+                padding-inline: 0.06em;
+                color: transparent;
+                background-image:
+                  linear-gradient(180deg,
+                    #fff8db 0%,
+                    #f8e4a8 16%,
+                    #edcb77 31%,
+                    #c9912d 49%,
+                    #8f5c12 58%,
+                    #e7bf63 74%,
+                    #fff0bf 84%,
+                    #b57920 100%);
                 -webkit-background-clip: text;
                 background-clip: text;
                 -webkit-text-fill-color: transparent;
-                filter: drop-shadow(0 2px 1px rgba(66, 38, 2, 0.65)) drop-shadow(0 5px 10px rgba(0, 0, 0, 0.28));
-                text-shadow:
-                  -1px -1px 0 rgba(255, 245, 198, 0.5),
-                  1px 1px 0 rgba(123, 75, 11, 0.55),
-                  0 0 18px rgba(239, 195, 92, 0.16);
+                filter: drop-shadow(0 1px 0 rgba(255,244,205,0.25)) drop-shadow(0 3px 0 rgba(118,74,16,0.38)) drop-shadow(0 8px 18px rgba(0,0,0,0.34));
                 position: relative;
               }
 
-              .privelux-hero-bottom-line::before {
+              .privelux-hero-bottom-line::after {
                 content: '';
                 position: absolute;
-                left: 12%;
-                right: 12%;
-                top: 16%;
-                height: 18%;
+                left: 8%;
+                right: 8%;
+                top: 12%;
+                height: 16%;
                 border-radius: 999px;
-                background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,248,220,0.36), rgba(255,255,255,0));
+                background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,250,228,0.32), rgba(255,255,255,0));
+                opacity: 0.9;
                 pointer-events: none;
-                mix-blend-mode: screen;
+              }
+
+              .privelux-hero-spacer {
+                height: 1.4rem;
               }
 
               @media (max-width: 768px) {
                 .privelux-hero-top-line {
+                  font-size: clamp(1.75rem, 7vw, 2.55rem);
+                  margin-bottom: 0.14em;
                   line-height: 0.98;
                 }
 
                 .privelux-hero-bottom-line {
-                  line-height: 0.94;
-                  margin-top: 0.06em;
+                  font-size: clamp(2.75rem, 12vw, 4.2rem);
+                  line-height: 0.92;
+                }
+
+                .privelux-hero-spacer {
+                  height: 1.05rem;
                 }
               }
             `}</style>
-            <h1 className="privelux-hero-title mb-3 md:mb-5 text-[2.45rem] leading-none md:text-6xl lg:text-7xl xl:text-[5.8rem] font-semibold">
+            <h1 className="privelux-hero-title mb-3 md:mb-5 font-semibold">
               <span className="privelux-hero-top-line">Venimos de la nada.</span>
               <span className="privelux-hero-bottom-line">Vamos por todo.</span>
             </h1>
-            <div className="mb-5 md:mb-8" />
+            <div className="privelux-hero-spacer" />
             <Link href="/shop">
               <Button
                 size="sm"
