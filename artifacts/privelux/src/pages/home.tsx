@@ -18,6 +18,7 @@ import hoodieImg from "@/assets/images/hoodie.png";
 import tshirtImg from "@/assets/images/tshirt.png";
 import jacketImg from "@/assets/images/jacket.png";
 import accessoriesImg from "@/assets/images/accessories.png";
+import heroSloganImg from "@/assets/images/hero-slogan.png";
 
 const LOGO_CHARACTER =
   "https://res.cloudinary.com/dpozptqu1/image/upload/v1779985097/Dise%C3%B1o_sin_t%C3%ADtulo_qbcusw.png";
@@ -290,7 +291,7 @@ export function Home() {
         </div>
 
         {/* ── Content block — desktop: starts just below blimp; mobile: pushed lower to avoid overlap ── */}
-        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-start items-center text-center pt-[25svh] md:pt-[33vh] lg:pt-[30vh] lg:translate-x-[2%]">
+        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-start items-center text-center pt-[24svh] md:pt-[31vh] lg:pt-[29vh] lg:translate-x-[2%]">
 
           {/* Scarface logo — centered between blimp and title */}
           <motion.img
@@ -302,109 +303,26 @@ export function Home() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 0.88, y: 0 }}
             transition={{ duration: 1.4, ease: "easeOut", delay: 0.15 }}
-            className="h-12 md:h-20 lg:h-24 w-auto object-contain mx-auto mb-3 md:mb-5 select-none pointer-events-none"
+            className="h-12 md:h-20 lg:h-24 w-auto object-contain mx-auto mb-2 md:mb-4 select-none pointer-events-none"
           />
 
-          {/* Title + description + CTA */}
+          {/* Hero slogan image + description + CTA */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.35 }}
-            className="w-full"
+            className="w-full flex flex-col items-center"
           >
-            <style>{`
-              @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Grenze+Gotisch:wght@500;600;700&display=swap');
-
-              .privelux-hero-title {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                text-wrap: balance;
-                width: 100%;
-              }
-
-              .privelux-hero-top-line {
-                display: block;
-                font-family: 'Cormorant Garamond', var(--app-font-serif), serif;
-                font-size: clamp(2.2rem, 4.2vw, 4.5rem);
-                font-weight: 700;
-                line-height: 0.95;
-                letter-spacing: -0.045em;
-                color: rgba(248, 245, 239, 0.98);
-                text-align: center;
-                text-shadow:
-                  0 1px 0 rgba(255,255,255,0.18),
-                  0 6px 24px rgba(0,0,0,0.34);
-                margin-bottom: 0.18em;
-              }
-
-              .privelux-hero-bottom-line {
-                display: block;
-                font-family: 'Grenze Gotisch', var(--app-font-serif), serif;
-                font-size: clamp(3.35rem, 8vw, 7.65rem);
-                font-weight: 600;
-                line-height: 0.88;
-                letter-spacing: -0.018em;
-                text-align: center;
-                padding-inline: 0.06em;
-                color: transparent;
-                background-image:
-                  linear-gradient(180deg,
-                    #fff8db 0%,
-                    #f8e4a8 16%,
-                    #edcb77 31%,
-                    #c9912d 49%,
-                    #8f5c12 58%,
-                    #e7bf63 74%,
-                    #fff0bf 84%,
-                    #b57920 100%);
-                -webkit-background-clip: text;
-                background-clip: text;
-                -webkit-text-fill-color: transparent;
-                filter: drop-shadow(0 1px 0 rgba(255,244,205,0.25)) drop-shadow(0 3px 0 rgba(118,74,16,0.38)) drop-shadow(0 8px 18px rgba(0,0,0,0.34));
-                position: relative;
-              }
-
-              .privelux-hero-bottom-line::after {
-                content: '';
-                position: absolute;
-                left: 8%;
-                right: 8%;
-                top: 12%;
-                height: 16%;
-                border-radius: 999px;
-                background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,250,228,0.32), rgba(255,255,255,0));
-                opacity: 0.9;
-                pointer-events: none;
-              }
-
-              .privelux-hero-spacer {
-                height: 1.4rem;
-              }
-
-              @media (max-width: 768px) {
-                .privelux-hero-top-line {
-                  font-size: clamp(1.75rem, 7vw, 2.55rem);
-                  margin-bottom: 0.14em;
-                  line-height: 0.98;
-                }
-
-                .privelux-hero-bottom-line {
-                  font-size: clamp(2.75rem, 12vw, 4.2rem);
-                  line-height: 0.92;
-                }
-
-                .privelux-hero-spacer {
-                  height: 1.05rem;
-                }
-              }
-            `}</style>
-            <h1 className="privelux-hero-title mb-3 md:mb-5 font-semibold">
-              <span className="privelux-hero-top-line">Venimos de la nada.</span>
-              <span className="privelux-hero-bottom-line">Vamos por todo.</span>
-            </h1>
-            <div className="privelux-hero-spacer" />
+            <img
+              src={heroSloganImg}
+              alt="Venimos de la nada. Vamos por todo."
+              draggable={false}
+              loading="eager"
+              className="w-full max-w-[350px] sm:max-w-[480px] md:max-w-[760px] lg:max-w-[1000px] xl:max-w-[1120px] h-auto mx-auto mb-3 md:mb-5 select-none pointer-events-none drop-shadow-[0_10px_30px_rgba(0,0,0,0.38)]"
+            />
+            <p className="text-muted-foreground text-xs md:text-base max-w-xl mx-auto mb-5 md:mb-8 tracking-wide px-3">
+              Relojes, accesorios y prendas pensadas para quienes valoran los detalles.
+            </p>
             <Link href="/shop">
               <Button
                 size="sm"
